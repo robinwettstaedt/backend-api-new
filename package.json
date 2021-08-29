@@ -1,7 +1,7 @@
 {
-    "name": "backend-api",
+    "name": "backend-api-new",
     "version": "1.0.0",
-    "description": "",
+    "description": "backend of my new app",
     "main": "src/index.js",
     "type": "module",
     "scripts": {
@@ -9,14 +9,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/robinwettstaedt/backend-api.git"
+        "url": "git+https://github.com/robinwettstaedt/backend-api-new.git"
     },
     "author": "Robin Wettstaedt",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/robinwettstaedt/backend-api/issues"
+        "url": "https://github.com/robinwettstaedt/backend-api-new/issues"
     },
-    "homepage": "https://github.com/robinwettstaedt/backend-api#readme",
+    "homepage": "https://github.com/robinwettstaedt/backend-api-new#readme",
     "dependencies": {
         "body-parser": "^1.19.0",
         "cors": "^2.8.5",

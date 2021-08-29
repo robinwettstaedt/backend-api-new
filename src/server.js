@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 
-import examples from './api/examples.route.js';
+import examples from './api/examples.routes.js';
 
 const app = express();
 
