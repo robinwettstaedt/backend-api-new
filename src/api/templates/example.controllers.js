@@ -1,11 +1,13 @@
+import { Example } from './example.model.js';
+
 // have to insert queries for each particular controller
 
 export const getOne = (model) => async (req, res) => {
   try {
-    const doc = await model.findOne({}).lean().exec();
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
 
     if (!doc) {
-      return res.status(400).end(); //hello
+      return res.status(400).end();
     }
 
     res.status(200).json({ data: doc });
@@ -28,7 +30,7 @@ export const getMany = (model) => async (req, res) => {
 
 export const createOne = (model) => async (req, res) => {
   try {
-    const doc = await model.create();
+    const doc = await model.create({ name: req.body.name });
     res.status(201).json({ data: doc });
   } catch (e) {
     console.error(e);
@@ -66,10 +68,12 @@ export const removeOne = (model) => async (req, res) => {
   }
 };
 
-export const crudControllers = (model) => ({
+const crudControllers = (model) => ({
   getOne: getOne(model),
   getMany: getMany(model),
   createOne: createOne(model),
   updateOne: updateOne(model),
   removeOne: removeOne(model),
 });
+
+export default crudControllers(Example);

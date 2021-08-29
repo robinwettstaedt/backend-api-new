@@ -2,9 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 
-import examples from './api/examples.routes.js';
+import { connect } from './utils/dbConnection.js';
+import example from './api/templates/example.router.js';
 
-const app = express();
+export const app = express();
 
 app.disable('x-powered-by');
 
@@ -13,7 +14,16 @@ app.use(express.json());
 // app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-app.use('/api/v1/examples', examples);
+app.use('/api/v1/example', example);
 app.use('*', (req, res) => res.status(404).json({ error: 'not found' }));
 
-export default app;
+export const start = async () => {
+  try {
+    await connect();
+    app.listen(process.env.PORT, () => {
+      console.log(`REST API on http://localhost:${process.env.PORT}/api`);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+};
