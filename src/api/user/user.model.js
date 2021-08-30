@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  picture: {
+    type: String,
+    default: 'defaultpicture.com',
+  },
   settings: {
     theme: {
       type: String,
