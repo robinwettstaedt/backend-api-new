@@ -4,6 +4,9 @@ import { Note } from './note.model.js';
 
 export const getOne = (model) => async (req, res) => {
   try {
+    // .lean() gets back POJO instead of mongoose object
+    // If you're executing a query and sending the results without modification to, say, an Express response, you should use lean.
+    // In general, if you do not modify the query results and do not use custom getters, you should use lean()
     const doc = await model.findOne({ _id: req.params.id }).lean().exec();
 
     if (!doc) {
@@ -40,7 +43,8 @@ export const createOne = (model) => async (req, res) => {
 
 export const updateOne = (model) => async (req, res) => {
   try {
-    const updatedDoc = await model.findOneAndUpdate().lean().exec();
+    // findOneAndUpdate returns a document whereas updateOne does not (it just returns the _id if it has created a new document).
+    const updatedDoc = await model.findOneAndUpdate().exec();
 
     if (!updatedDoc) {
       return res.status(400).end();
@@ -55,6 +59,7 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
+    // removed == the removed document (if any)
     const removed = await model.findOneAndRemove().exec();
 
     if (!removed) {
