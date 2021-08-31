@@ -4,6 +4,7 @@ import morgan from 'morgan';
 
 import { connect } from './utils/dbConnection.js';
 import example from './api/templates/example.router.js';
+import note from './api/note/note.router.js';
 
 export const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.use('/api/v1/example', example);
+app.use('/api/v1/note', note);
 app.use('*', (req, res) => res.status(404).json({ error: 'not found' }));
 
 export const start = async () => {
