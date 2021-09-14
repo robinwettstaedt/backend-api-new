@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
 import { connect } from './utils/dbConnection.js';
 import example from './api/templates/example.router.js';
@@ -11,6 +12,7 @@ export const app = express();
 app.disable('x-powered-by');
 
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 // app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
