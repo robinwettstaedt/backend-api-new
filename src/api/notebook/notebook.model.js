@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export const notebookSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
     required: true,
   },
