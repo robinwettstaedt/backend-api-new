@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { notebookSchema } from '../notebook/notebook.model';
+import bcrypt from 'bcrypt';
+import { notebookSchema } from '../notebook/notebook.model.js';
 
 const userSchema = new mongoose.Schema({
   //   username: {
@@ -8,6 +9,11 @@ const userSchema = new mongoose.Schema({
   //     lowercase: true,
   //     required: true,
   //   },
+  tokenVersion: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   email: {
     type: String,
     unique: true,
@@ -36,7 +42,6 @@ const userSchema = new mongoose.Schema({
   },
   notebooks: {
     type: [notebookSchema],
-    order,
   },
 });
 

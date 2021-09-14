@@ -9,17 +9,17 @@ export const notebookSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-  accessibleBy: {
-    type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],
-    required: true,
-  },
-  createdBy: {
-    type: { type: mongoose.SchemaTypes.ObjectId, ref: 'user' },
-    required: true,
-  },
-  notes: {
-    type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'note' }],
-  },
+  //   accessibleBy: {
+  //     type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],
+  //     required: true,
+  //   },
+  //   createdBy: {
+  //     type: { type: mongoose.SchemaTypes.ObjectId, ref: 'user' },
+  //     required: true,
+  //   },
+  //   notes: {
+  //     type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'note' }],
+  //   },
 });
 
 notebookSchema.index({}, {});
