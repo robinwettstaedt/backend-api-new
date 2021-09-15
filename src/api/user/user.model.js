@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  username: {
+    type: String,
+  },
   firstName: {
     type: String,
     required: true,
@@ -41,8 +44,8 @@ const userSchema = new mongoose.Schema({
     },
     notifications: {
       type: String,
-      enum: ['DARK', 'LIGHT'],
-      default: 'DARK',
+      enum: ['ALL', 'TODOS', 'NONE'],
+      default: 'ALL',
     },
   },
   notebooks: {

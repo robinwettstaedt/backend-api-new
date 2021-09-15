@@ -3,6 +3,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
+import { User } from './api/user/user.model.js';
+
 import { connect } from './utils/dbConnection.js';
 import {
   signup,
@@ -37,9 +39,26 @@ app.post('/auth/signinwithgoogle', googleAuthController);
 app.post('/auth/deletegoogleaccount', deleteGoogleUser);
 
 app.use('/api', protect);
-app.post('/api/signout', signout);
+app.post('/api/v1/signout', signout);
 app.use('/api/v1/example', exampleRouter);
 app.use('/api/v1/note', noteRouter);
+app.get('/api/v1/getuserbyid', async (req, res) => {
+  try {
+    // .lean() gets back POJO instead of mongoose object
+    // If you're executing a query and sending the results without modification to, say, an Express response, you should use lean.
+    // In general, if you do not modify the query results and do not use custom getters, you should use lean()
+    const doc = await User.findOne({ email: req.body.email }).lean().exec();
+
+    if (!doc) {
+      return res.status(400).end();
+    }
+
+    res.status(200).json({ data: doc });
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+});
 
 app.use('*', (req, res) => res.status(404).json({ error: 'not found' }));
 
