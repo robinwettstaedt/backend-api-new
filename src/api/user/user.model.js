@@ -3,16 +3,14 @@ import bcrypt from 'bcrypt';
 import { notebookSchema } from '../notebook/notebook.model.js';
 
 const userSchema = new mongoose.Schema({
-  //   username: {
-  //     type: String,
-  //     unique: true,
-  //     lowercase: true,
-  //     required: true,
-  //   },
   tokenVersion: {
     type: Number,
     required: true,
     default: 0,
+  },
+  firstName: {
+    type: String,
+    required: true,
   },
   email: {
     type: String,
@@ -22,10 +20,17 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function () {
+      return this.googleToken ? false : true;
+    },
+  },
+  googleToken: {
+    type: String,
   },
   picture: {
     type: String,
+    required: true,
+    // change to url of default picture
     default: 'defaultpicture.com',
   },
   settings: {
@@ -35,9 +40,9 @@ const userSchema = new mongoose.Schema({
       default: 'DARK',
     },
     notifications: {
-      type: Boolean,
-      required: true,
-      default: true,
+      type: String,
+      enum: ['DARK', 'LIGHT'],
+      default: 'DARK',
     },
   },
   notebooks: {

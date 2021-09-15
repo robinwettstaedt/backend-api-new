@@ -12,6 +12,7 @@ import {
   revokeRefreshToken,
   protect,
 } from './utils/auth.js';
+import { googleAuthController, deleteGoogleUser } from './utils/googleauth.js';
 import exampleRouter from './api/templates/example.router.js';
 import noteRouter from './api/note/note.router.js';
 
@@ -32,6 +33,8 @@ app.use(morgan('dev'));
 
 app.post('/signup', signup);
 app.post('/signin', signin);
+app.post('/auth/signinwithgoogle', googleAuthController);
+app.post('/auth/deletegoogleaccount', deleteGoogleUser);
 
 app.use('/api', protect);
 app.post('/api/signout', signout);
@@ -44,7 +47,7 @@ export const start = async () => {
   try {
     await connect();
     app.listen(process.env.PORT, () => {
-      console.log(`REST API on http://localhost:${process.env.PORT}/api`);
+      console.log(`REST API on http://localhost:${process.env.PORT}`);
     });
   } catch (e) {
     console.error(e);
