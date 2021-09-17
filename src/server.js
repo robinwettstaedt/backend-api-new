@@ -35,14 +35,17 @@ app.use(morgan('dev'));
 
 app.post('/signup', signup);
 app.post('/signin', signin);
+app.post('/refresh_token', refreshAccessToken);
+// app.post('/logout', '');
 app.post('/auth/signinwithgoogle', googleAuthController);
 app.post('/auth/deletegoogleaccount', deleteGoogleUser);
 
 app.use('/api', protect);
-app.post('/api/v1/signout', signout);
 app.use('/api/v1/example', exampleRouter);
 app.use('/api/v1/note', noteRouter);
-app.get('/api/v1/getuserbyid', async (req, res) => {
+
+// for testing
+app.get('/getuserbyid', async (req, res) => {
   try {
     // .lean() gets back POJO instead of mongoose object
     // If you're executing a query and sending the results without modification to, say, an Express response, you should use lean.

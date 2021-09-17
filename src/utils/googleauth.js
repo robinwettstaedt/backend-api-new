@@ -3,6 +3,7 @@ import { User } from '../api/user/user.model.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// change so that the user object from the db is used to create jwts and send them back (accessToken) or put them in cookie (refreshToken)
 export const googleAuthController = async (req, res) => {
   try {
     const { token } = req.body;
@@ -26,16 +27,34 @@ export const googleAuthController = async (req, res) => {
         googleToken: token,
       });
 
-      return res.status(200).json({ user: createduser });
+      const refreshToken = createRefreshToken(existingUser);
+
+      res.cookie('jid', refreshToken, {
+        httpOnly: true,
+        path: '/refresh_token',
+      });
+
+      const accessToken = createAccessToken(existingUser);
+      // add the user object in the return
+      return res.status(201).send({ accessToken: accessToken });
+    } else {
+      const updatedUser = await User.findOneAndUpdate(
+        { email: email },
+        { email: email, firstName: name, picture: picture, googleToken: token },
+        { upsert: true }
+      ).exec();
+
+      const refreshToken = createRefreshToken(updatedUser);
+
+      res.cookie('jid', refreshToken, {
+        httpOnly: true,
+        path: '/refresh_token',
+      });
+
+      const accessToken = createAccessToken(updatedUser);
+      // add the user object in the return
+      return res.status(201).send({ accessToken: accessToken });
     }
-
-    const updatedUser = await User.findOneAndUpdate(
-      { email: email },
-      { email: email, firstName: name, picture: picture, googleToken: token },
-      { upsert: true }
-    ).exec();
-
-    return res.status(200).json({ user: updatedUser });
   } catch (e) {
     console.error(e);
     res.status(400).end();

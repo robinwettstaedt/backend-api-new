@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 export const createAccessToken = (user) => {
   return jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: '15min',
+    expiresIn: '30min',
   });
 };
 
@@ -49,6 +49,7 @@ export const signin = async (req, res) => {
     });
 
     const accessToken = createAccessToken(user);
+
     return res.status(201).send({ accessToken: accessToken });
   } catch (e) {
     console.error(e);
@@ -72,6 +73,7 @@ export const signup = async (req, res) => {
     });
 
     const accessToken = createAccessToken(user);
+    // add user object in response
     return res.status(201).send({ accessToken: accessToken });
   } catch (e) {
     console.error(e);
@@ -79,6 +81,7 @@ export const signup = async (req, res) => {
   }
 };
 
+// sets the refreshToken cookie to be empty so that the user will not be logged in automatically
 export const signout = (user) => {
   res.cookie('jid', '', {
     httpOnly: true,
@@ -86,7 +89,8 @@ export const signout = (user) => {
   });
 };
 
-// not sure if getting the user details in the request body is a better way
+// generates and return a new accessToken to the user by validating their refreshToken
+// is requested by the frontend via a timeout function, so that the access token is silently refreshed before it runs out
 export const refreshAccessToken = async (req, res) => {
   const token = req.cookie.jid;
   if (!token) return res.status(401).send({ message: 'invalid auth token' });
@@ -109,15 +113,18 @@ export const refreshAccessToken = async (req, res) => {
       return res.status(401).send({ message: 'invalid auth token' });
     }
 
-    return res.status(201).send({ accessToken: createAccessToken(user) });
+    const newAccessToken = createAccessToken(user);
+
+    return res.status(201).send({ accessToken: newAccessToken });
   } catch (error) {
     return res.status(401).send({ message: 'invalid auth token' });
   }
 };
 
+// invalidates the users refreshToken, so the user will have to log in again on every device
+// e.g. when user forgets password
 export const revokeRefreshToken = async (user) => {
   try {
-    // findOneAndUpdate returns a document whereas updateOne does not (it just returns the _id if it has created a new document).
     const updatedDoc = await User.findOneAndUpdate(
       { _id: user.id },
       { $inc: { tokenVersion: 1 } }
@@ -135,6 +142,8 @@ export const revokeRefreshToken = async (user) => {
 };
 
 // middleware securing all routes
+// checking each incoming request to /api/... for the Authorization Header
+// verifies the JWT inside
 export const protect = async (req, res, next) => {
   const bearer = req.headers.authorization;
 
@@ -143,11 +152,13 @@ export const protect = async (req, res, next) => {
   }
 
   const accessToken = bearer.split('Bearer ')[1].trim();
+
   let payload;
+
   try {
     payload = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
   } catch (e) {
-    return res.status(401).end();
+    return res.status(401).send({ message: 'token verification missed' });
   }
 
   const user = await User.findById(payload.id)
@@ -159,6 +170,7 @@ export const protect = async (req, res, next) => {
     return res.status(401).end();
   }
 
+  // appends the user object to the request, for use in controllers
   req.user = user;
   next();
 };
