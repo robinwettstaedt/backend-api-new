@@ -45,7 +45,7 @@ export const signin = async (req, res) => {
 
     res.cookie('jid', refreshToken, {
       httpOnly: true,
-      path: '/refresh_token',
+      //   path: '/refresh_token',
     });
 
     const accessToken = createAccessToken(user);
@@ -69,7 +69,7 @@ export const signup = async (req, res) => {
 
     res.cookie('jid', refreshToken, {
       httpOnly: true,
-      path: '/refresh_token',
+      //   path: '/refresh_token',
     });
 
     const accessToken = createAccessToken(user);
@@ -83,17 +83,14 @@ export const signup = async (req, res) => {
 
 // sets the refreshToken cookie to be empty so that the user will not be logged in automatically
 export const signout = (user) => {
-  res.cookie('jid', '', {
-    httpOnly: true,
-    path: '/refresh_token',
-  });
+  res.cookie('jid', '');
 };
 
 // generates and return a new accessToken to the user by validating their refreshToken
 // is requested by the frontend via a timeout function, so that the access token is silently refreshed before it runs out
 export const refreshAccessToken = async (req, res) => {
-  const token = req.cookie.jid;
-  if (!token) return res.status(401).send({ message: 'invalid auth token' });
+  const token = req.cookies.jid;
+  if (!token) return res.status(401).send({ message: 'no token cookie set' });
 
   let payload;
 
@@ -101,7 +98,7 @@ export const refreshAccessToken = async (req, res) => {
     payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
   } catch (error) {
     console.log(error);
-    return res.status(401).send({ message: 'invalid auth token' });
+    return res.status(401).send({ message: 'invalid' });
   }
 
   try {

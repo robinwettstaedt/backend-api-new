@@ -24,7 +24,7 @@ app.disable('x-powered-by');
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000'],
     credentials: true,
   })
 );
@@ -37,8 +37,8 @@ app.post('/signup', signup);
 app.post('/signin', signin);
 app.post('/refresh_token', refreshAccessToken);
 // app.post('/logout', '');
-app.post('/auth/signinwithgoogle', googleAuthController);
-app.post('/auth/deletegoogleaccount', deleteGoogleUser);
+app.post('/signinwithgoogle', googleAuthController);
+app.post('/deletegoogleaccount', deleteGoogleUser);
 
 app.use('/api', protect);
 app.use('/api/v1/example', exampleRouter);

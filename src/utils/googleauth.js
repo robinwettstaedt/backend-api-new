@@ -1,5 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import { User } from '../api/user/user.model.js';
+import { createRefreshToken, createAccessToken } from './auth.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -31,7 +32,7 @@ export const googleAuthController = async (req, res) => {
 
       res.cookie('jid', refreshToken, {
         httpOnly: true,
-        path: '/refresh_token',
+        // path: '/refresh_token',
       });
 
       const accessToken = createAccessToken(existingUser);
@@ -40,7 +41,12 @@ export const googleAuthController = async (req, res) => {
     } else {
       const updatedUser = await User.findOneAndUpdate(
         { email: email },
-        { email: email, firstName: name, picture: picture, googleToken: token },
+        {
+          email: email,
+          firstName: given_name,
+          picture: picture,
+          googleToken: token,
+        },
         { upsert: true }
       ).exec();
 
@@ -48,7 +54,7 @@ export const googleAuthController = async (req, res) => {
 
       res.cookie('jid', refreshToken, {
         httpOnly: true,
-        path: '/refresh_token',
+        // path: '/refresh_token',
       });
 
       const accessToken = createAccessToken(updatedUser);
