@@ -36,7 +36,7 @@ app.use(morgan('dev'));
 app.post('/signup', signup);
 app.post('/signin', signin);
 app.post('/refresh_token', refreshAccessToken);
-// app.post('/logout', '');
+app.post('/signout', signout);
 app.post('/signinwithgoogle', googleAuthController);
 app.post('/deletegoogleaccount', deleteGoogleUser);
 

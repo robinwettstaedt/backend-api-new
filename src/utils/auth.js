@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 export const createAccessToken = (user) => {
   return jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: '30min',
+    expiresIn: '15min',
   });
 };
 
@@ -12,7 +12,7 @@ export const createRefreshToken = (user) => {
     { id: user.id, tokenVersion: user.tokenVersion },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: '7d',
+      expiresIn: '30d',
     }
   );
 };
@@ -27,9 +27,7 @@ export const signin = async (req, res) => {
   const invalid = { message: 'Invalid email and password combination' };
 
   try {
-    const user = await User.findOne({ email: req.body.email })
-      .select('email password')
-      .exec();
+    const user = await User.findOne({ email: req.body.email }).exec();
 
     if (!user) {
       return res.status(401).send(invalid);
@@ -45,12 +43,14 @@ export const signin = async (req, res) => {
 
     res.cookie('jid', refreshToken, {
       httpOnly: true,
-      //   path: '/refresh_token',
+      path: '/refresh_token',
     });
 
     const accessToken = createAccessToken(user);
 
-    return res.status(201).send({ accessToken: accessToken });
+    return res
+      .status(201)
+      .send({ accessToken: accessToken, user_email: user.email });
   } catch (e) {
     console.error(e);
     res.status(500).end();
@@ -69,7 +69,7 @@ export const signup = async (req, res) => {
 
     res.cookie('jid', refreshToken, {
       httpOnly: true,
-      //   path: '/refresh_token',
+      path: '/refresh_token',
     });
 
     const accessToken = createAccessToken(user);

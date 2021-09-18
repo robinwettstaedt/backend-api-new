@@ -28,14 +28,14 @@ export const googleAuthController = async (req, res) => {
         googleToken: token,
       });
 
-      const refreshToken = createRefreshToken(existingUser);
+      const refreshToken = createRefreshToken(createduser);
 
       res.cookie('jid', refreshToken, {
         httpOnly: true,
         // path: '/refresh_token',
       });
 
-      const accessToken = createAccessToken(existingUser);
+      const accessToken = createAccessToken(createduser);
       // add the user object in the return
       return res.status(201).send({ accessToken: accessToken });
     } else {
@@ -54,7 +54,7 @@ export const googleAuthController = async (req, res) => {
 
       res.cookie('jid', refreshToken, {
         httpOnly: true,
-        // path: '/refresh_token',
+        path: '/refresh_token',
       });
 
       const accessToken = createAccessToken(updatedUser);
