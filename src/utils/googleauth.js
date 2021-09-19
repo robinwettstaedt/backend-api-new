@@ -32,11 +32,11 @@ export const googleAuthController = async (req, res) => {
 
       res.cookie('jid', refreshToken, {
         httpOnly: true,
-        // path: '/refresh_token',
+        path: '/refresh_token',
       });
 
       const accessToken = createAccessToken(createduser);
-      // add the user object in the return
+
       return res.status(201).send({ accessToken: accessToken });
     } else {
       const updatedUser = await User.findOneAndUpdate(
@@ -58,7 +58,7 @@ export const googleAuthController = async (req, res) => {
       });
 
       const accessToken = createAccessToken(updatedUser);
-      // add the user object in the return
+
       return res.status(201).send({ accessToken: accessToken });
     }
   } catch (e) {

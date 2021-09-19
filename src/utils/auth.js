@@ -73,7 +73,7 @@ export const signup = async (req, res) => {
     });
 
     const accessToken = createAccessToken(user);
-    // add user object in response
+
     return res.status(201).send({ accessToken: accessToken });
   } catch (e) {
     console.error(e);
@@ -82,8 +82,8 @@ export const signup = async (req, res) => {
 };
 
 // sets the refreshToken cookie to be empty so that the user will not be logged in automatically
-export const signout = (user) => {
-  res.cookie('jid', '');
+export const signout = (req, res) => {
+  res.cookie('jid', '').status(200).end();
 };
 
 // generates and return a new accessToken to the user by validating their refreshToken
@@ -159,7 +159,7 @@ export const protect = async (req, res, next) => {
   }
 
   const user = await User.findById(payload.id)
-    .select('-password')
+    .select('-password -googleToken -tokenVersion')
     .lean()
     .exec();
 

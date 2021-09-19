@@ -17,6 +17,7 @@ import {
 import { googleAuthController, deleteGoogleUser } from './utils/googleauth.js';
 import exampleRouter from './api/templates/example.router.js';
 import noteRouter from './api/note/note.router.js';
+import userRouter from './api/user/user.router.js';
 
 export const app = express();
 
@@ -43,6 +44,7 @@ app.post('/deletegoogleaccount', deleteGoogleUser);
 app.use('/api', protect);
 app.use('/api/v1/example', exampleRouter);
 app.use('/api/v1/note', noteRouter);
+app.use('/api/v1/user', userRouter);
 
 // for testing
 app.get('/getuserbyid', async (req, res) => {
