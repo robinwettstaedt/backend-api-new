@@ -3,6 +3,7 @@ import { User } from './user.model.js';
 export const getOne = (model) => async (req, res) => {
   try {
     const user = req.user;
+    console.log(user);
     res.status(200).send({ user: user });
   } catch (e) {
     console.error(e);

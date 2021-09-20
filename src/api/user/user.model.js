@@ -2,56 +2,59 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import { notebookSchema } from '../notebook/notebook.model.js';
 
-const userSchema = new mongoose.Schema({
-  tokenVersion: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  username: {
-    type: String,
-  },
-  firstName: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: function () {
-      return this.googleToken ? false : true;
+const userSchema = new mongoose.Schema(
+  {
+    tokenVersion: {
+      type: Number,
+      required: true,
+      default: 0,
     },
-  },
-  googleToken: {
-    type: String,
-  },
-  picture: {
-    type: String,
-    required: true,
-    // change to url of default picture
-    default: 'defaultpicture.com',
-  },
-  settings: {
-    theme: {
+    username: {
       type: String,
-      enum: ['DARK', 'LIGHT'],
-      default: 'DARK',
     },
-    notifications: {
+    firstName: {
       type: String,
-      enum: ['ALL', 'TODOS', 'NONE'],
-      default: 'ALL',
+      required: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+      lowercase: true,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: function () {
+        return this.googleToken ? false : true;
+      },
+    },
+    googleToken: {
+      type: String,
+    },
+    picture: {
+      type: String,
+      required: true,
+      // change to url of default picture
+      default: 'defaultpicture.com',
+    },
+    settings: {
+      theme: {
+        type: String,
+        enum: ['DARK', 'LIGHT'],
+        default: 'DARK',
+      },
+      notifications: {
+        type: String,
+        enum: ['ALL', 'TODOS', 'NONE'],
+        default: 'ALL',
+      },
+    },
+    notebooks: {
+      type: [notebookSchema],
     },
   },
-  notebooks: {
-    type: [notebookSchema],
-  },
-});
+  { timestamps: true }
+);
 
 userSchema.pre('save', function (next) {
   if (!this.isModified('password')) {

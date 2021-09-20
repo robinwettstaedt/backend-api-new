@@ -1,26 +1,32 @@
 import mongoose from 'mongoose';
 
-export const notebookSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
+export const notebookSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    color: {
+      type: String,
+      required: true,
+      default: '',
+    },
+    hasAccess: {
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],
+      required: true,
+    },
+    createdBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'user',
+      required: true,
+    },
+    notes: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'note' }],
+    deleted: { type: Boolean, required: true, default: false },
+    deletedAt: mongoose.SchemaTypes.Date,
+    visible: { type: Boolean, required: true, default: true },
   },
-  color: {
-    type: String,
-    default: '',
-  },
-  //   accessibleBy: {
-  //     type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],
-  //     required: true,
-  //   },
-  //   createdBy: {
-  //     type: { type: mongoose.SchemaTypes.ObjectId, ref: 'user' },
-  //     required: true,
-  //   },
-  //   notes: {
-  //     type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'note' }],
-  //   },
-});
+  { timestamps: true }
+);
 
 notebookSchema.index({}, {});
 
