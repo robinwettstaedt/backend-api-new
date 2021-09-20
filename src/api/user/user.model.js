@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
-import { notebookSchema } from '../notebook/notebook.model.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -50,7 +49,7 @@ const userSchema = new mongoose.Schema(
       },
     },
     notebooks: {
-      type: [notebookSchema],
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'notebook' }],
     },
   },
   { timestamps: true }

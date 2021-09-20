@@ -44,7 +44,9 @@ export const createOne = (model) => async (req, res) => {
 export const updateOne = (model) => async (req, res) => {
   try {
     // findOneAndUpdate returns a document whereas updateOne does not (it just returns the _id if it has created a new document).
-    const updatedDoc = await model.findOneAndUpdate().exec();
+    const updatedDoc = await model
+      .findOneAndUpdate({}, {}, { new: true })
+      .exec();
 
     if (!updatedDoc) {
       return res.status(400).end();
@@ -66,7 +68,7 @@ export const removeOne = (model) => async (req, res) => {
       return res.status(400).end();
     }
 
-    return res.status(200).json({ data: removed });
+    res.status(200).json({ data: removed });
   } catch (e) {
     console.error(e);
     res.status(400).end();

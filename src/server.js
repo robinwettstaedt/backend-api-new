@@ -43,10 +43,9 @@ app.post('/signinwithgoogle', googleAuthController);
 app.post('/deletegoogleaccount', deleteGoogleUser);
 
 app.use('/api', protect);
-app.use('/api/v1/example', exampleRouter);
 app.use('/api/v1/note', noteRouter);
 app.use('/api/v1/user', userRouter);
-app.use('/notebook', notebookRouter);
+app.use('/api/v1/notebook', notebookRouter);
 
 // for testing
 app.get('/getuserbyid', async (req, res) => {
