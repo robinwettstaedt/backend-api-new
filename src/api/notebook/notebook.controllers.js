@@ -1,6 +1,17 @@
 import { UserRefreshClient } from 'google-auth-library';
 import { Notebook } from './notebook.model.js';
 
+const userHasAccess = (doc, user_id) => {
+  const matchingUserID = doc.hasAccess.filter((docUserID) => {
+    return docUserID.equals(user_id);
+  });
+
+  if (matchingUserID.length > 0) {
+    return true;
+  }
+  return false;
+};
+
 // have to insert queries for each particular controller
 
 export const getOne = (model) => async (req, res) => {
@@ -18,11 +29,7 @@ export const getOne = (model) => async (req, res) => {
       return res.status(404).end();
     }
 
-    const matchingUserID = doc.hasAccess.filter((user_id) => {
-      return user_id.equals(req.user._id);
-    });
-
-    if (matchingUserID.length > 0) {
+    if (userHasAccess(doc, req.user._id)) {
       return res.status(200).json(doc);
     }
 
@@ -67,11 +74,7 @@ export const updateOne = (model) => async (req, res) => {
       return res.status(404).end();
     }
 
-    const matchingUserID = doc.hasAccess.filter((user_id) => {
-      return user_id.equals(req.user._id);
-    });
-
-    if (matchingUserID.length > 0) {
+    if (userHasAccess(doc, req.user._id)) {
       // findOneAndUpdate returns a document whereas updateOne does not (it just returns the _id if it has created a new document).
       const updatedDoc = await model
         .findOneAndUpdate({ _id: req.params.id }, req.body, { new: true })
@@ -94,14 +97,26 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    // removed == the removed document (if any)
-    const removed = await model.findOneAndRemove().exec();
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
 
-    if (!removed) {
-      return res.status(400).end();
+    if (!doc) {
+      return res.status(404).end();
     }
 
-    res.status(200).json(removed);
+    if (userHasAccess(doc, req.user._id)) {
+      const removed = await model
+        .findOneAndRemove({ _id: req.params.id })
+        .select('-__v')
+        .exec();
+
+      if (!removed) {
+        return res.status(404).end();
+      }
+
+      return res.status(200).json(removed);
+    }
+
+    res.status(403).end();
   } catch (e) {
     console.error(e);
     res.status(400).end();
