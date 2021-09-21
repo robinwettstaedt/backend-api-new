@@ -21,9 +21,17 @@ export const notebookSchema = new mongoose.Schema(
       required: true,
     },
     notes: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'note' }],
-    deleted: { type: Boolean, required: true, default: false },
+    deleted: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     deletedAt: mongoose.SchemaTypes.Date,
-    visible: { type: Boolean, required: true, default: true },
+    visible: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   },
   { timestamps: true }
 );

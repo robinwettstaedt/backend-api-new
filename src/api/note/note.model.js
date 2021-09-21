@@ -2,49 +2,53 @@ import mongoose from 'mongoose';
 
 export const noteSchema = new mongoose.Schema(
   {
+    title: {
+      type: String,
+      required: true,
+      default: 'Note',
+    },
     content: {
       type: {},
       required: true,
       default: {},
     },
-    //   title: {
-    //     type: String,
-    //     default: 'Note',
-    //   },
-    //   color: {
-    //     type: String,
-    //     default: '',
-    //   },
-    //   accessibleBy: {
-    //     type: [
-    //       {
-    //         type: mongoose.SchemaTypes.ObjectId,
-    //         ref: 'user',
-    //         writeAccess: {
-    //           type: Boolean,
-    //           default: false,
-    //         },
-    //       },
-    //     ],
-    //     required: true,
-    //   },
-    //   createdBy: {
-    //     type: { type: mongoose.SchemaTypes.ObjectId, ref: 'user' },
-    //     required: true,
-    //   },
-    //   content: {},
-    //   active: {
-    //     type: Boolean,
-    //     default: true,
-    //   },
-    //   deleted: {
-    //     type: Date,
-    //   },
-    //   notebook: {
-    //     type: mongoose.SchemaTypes.ObjectId,
-    //     ref: 'notebook',
-    //     required: true,
-    //   },
+    notebook: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'notebook',
+      required: true,
+    },
+    emoji: {
+      type: {},
+      required: true,
+      default: {},
+    },
+    hasAccess: {
+      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],
+      required: true,
+    },
+    createdBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'user',
+      required: true,
+    },
+    deleted: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    deletedAt: mongoose.SchemaTypes.Date,
+    visible: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    lastUpdatedBy: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'user',
+      required: true,
+    },
+    locked: { type: Boolean, required: true, default: false },
+    favourited: { type: Boolean, required: true, default: false },
   },
   { timestamps: true }
 );
