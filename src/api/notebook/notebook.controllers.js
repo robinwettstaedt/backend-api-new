@@ -1,4 +1,3 @@
-import { UserRefreshClient } from 'google-auth-library';
 import { Notebook } from './notebook.model.js';
 
 const userHasAccess = (doc, user_id) => {
@@ -75,9 +74,21 @@ export const updateOne = (model) => async (req, res) => {
     }
 
     if (userHasAccess(doc, req.user._id)) {
-      // findOneAndUpdate returns a document whereas updateOne does not (it just returns the _id if it has created a new document).
+      const notebookUpdates = req.body;
+
+      // check for deletion status
+      if (notebookUpdates.deleted === true) {
+        notebookUpdates.deletedAt = Date.now();
+      }
+      if (notebookUpdates.deleted === false) {
+        notebookUpdates.deletedAt = null;
+      }
+
+      // update the document
       const updatedDoc = await model
-        .findOneAndUpdate({ _id: req.params.id }, req.body, { new: true })
+        .findOneAndUpdate({ _id: req.params.id }, notebookUpdates, {
+          new: true,
+        })
         .select('-__v')
         .exec();
 
