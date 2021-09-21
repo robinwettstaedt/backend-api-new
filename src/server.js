@@ -14,7 +14,7 @@ import {
   revokeRefreshToken,
   protect,
 } from './utils/auth.js';
-import { googleAuthController, deleteGoogleUser } from './utils/googleauth.js';
+import { googleAuthController } from './utils/googleauth.js';
 import exampleRouter from './api/templates/example.router.js';
 import noteRouter from './api/note/note.router.js';
 import notebookRouter from './api/notebook/notebook.router.js';
@@ -40,33 +40,13 @@ app.post('/signin', signin);
 app.post('/refresh_token', refreshAccessToken);
 app.post('/signout', signout);
 app.post('/signinwithgoogle', googleAuthController);
-app.post('/deletegoogleaccount', deleteGoogleUser);
 
 app.use('/api', protect);
 app.use('/api/v1/note', noteRouter);
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/notebook', notebookRouter);
 
-// for testing
-app.get('/getuserbyid', async (req, res) => {
-  try {
-    // .lean() gets back POJO instead of mongoose object
-    // If you're executing a query and sending the results without modification to, say, an Express response, you should use lean.
-    // In general, if you do not modify the query results and do not use custom getters, you should use lean()
-    const doc = await User.findOne({ email: req.body.email }).lean().exec();
-
-    if (!doc) {
-      return res.status(400).end();
-    }
-
-    res.status(200).json({ data: doc });
-  } catch (e) {
-    console.error(e);
-    res.status(400).end();
-  }
-});
-
-app.use('*', (req, res) => res.status(404).json({ error: 'not found' }));
+app.use('*', (req, res) => res.status(404).json({ error: 'invalid route' }));
 
 export const start = async () => {
   try {

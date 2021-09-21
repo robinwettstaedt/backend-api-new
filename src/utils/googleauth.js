@@ -66,20 +66,3 @@ export const googleAuthController = async (req, res) => {
     res.status(400).end();
   }
 };
-
-export const deleteGoogleUser = async (req, res) => {
-  const email = req.body.email;
-
-  try {
-    const removed = await User.findOneAndRemove({ email: email }).exec();
-
-    if (!removed) {
-      return res.status(400).end();
-    }
-
-    res.status(200).json({ data: removed });
-  } catch (e) {
-    console.error(e);
-    res.status(400).end();
-  }
-};
