@@ -21,6 +21,7 @@ export const getOne = (model) => async (req, res) => {
     const doc = await model
       .findOne({ _id: req.params.id })
       .select('-__v')
+      .populate('notes', '_id title emoji deleted deletedAt visible')
       .lean()
       .exec();
 
@@ -52,7 +53,12 @@ export const getOne = (model) => async (req, res) => {
 
 export const createOne = (model) => async (req, res) => {
   try {
-    const doc = await model.create(req.body);
+    const notebook = req.body;
+
+    notebook.hasAccess = [req.user._id];
+    notebook.createdBy = [req.user._id];
+
+    const doc = await model.create(notebook);
 
     const { _doc } = doc;
     const { __v, ...rest } = _doc;
@@ -82,6 +88,32 @@ export const updateOne = (model) => async (req, res) => {
       }
       if (notebookUpdates.deleted === false) {
         notebookUpdates.deletedAt = null;
+      }
+
+      // updates to the hasAccess fields are handled by different routes
+      if (notebookUpdates.hasAccess) {
+        delete notebookUpdates.hasAccess;
+      }
+
+      // client wants to alter the hasAccess field
+      // make sure it always includes the client
+      //   if (notebookUpdates.hasAccess) {
+      //     if (!notebookUpdates.hasAccess.includes(req.user._id)) {
+      //       notebookUpdates.hasAccess.push(req.user._id);
+      //     }
+      //     if (!notebookUpdates.hasAccess.includes(doc.createdBy)) {
+      //       notebookUpdates.hasAccess.push(doc.createdBy);
+      //     }
+      //   }
+
+      if (notebookUpdates.hasAccess) {
+        if (req.user._id !== doc.createdBy) {
+          //   notebookUpdates.hasAccess === [];
+          delete notebookUpdates.hasAccess;
+        }
+        if (!notebookUpdates.hasAccess.includes(doc.createdBy)) {
+          notebookUpdates.hasAccess.push(doc.createdBy);
+        }
       }
 
       // update the document
@@ -134,12 +166,53 @@ export const removeOne = (model) => async (req, res) => {
   }
 };
 
+export const addToHasAccess = (model) => async (req, res) => {
+  try {
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
+    const accessUpdates = req.body;
+
+    if (!accessUpdates.hasAccess) {
+      return res.status(400).end();
+    }
+
+    doc.hasAccess.push(accessUpdates.hasAccess);
+    const updatedDoc = await doc.save();
+
+    // update the document
+    // const updatedDoc = await model
+    //   .findOneAndUpdate({ _id: req.params.id }, notebookUpdates, {
+    //     new: true,
+    //   })
+    //   .select('-__v')
+    //   .exec();
+
+    // if (!updatedDoc) {
+    //   return res.status(404).end();
+    // }
+
+    res.status(200).json(updatedDoc);
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+};
+
 const crudControllers = (model) => ({
   getOne: getOne(model),
   //   getMany: getMany(model),
   createOne: createOne(model),
   updateOne: updateOne(model),
   removeOne: removeOne(model),
+  addToHasAccess: addToHasAccess(model),
 });
 
 export default crudControllers(Notebook);

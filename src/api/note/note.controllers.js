@@ -1,3 +1,4 @@
+import { Notebook } from '../notebook/notebook.model.js';
 import { Note } from './note.model.js';
 
 const userHasAccess = (doc, user_id) => {
@@ -61,11 +62,28 @@ export const createOne = (model) => async (req, res) => {
     note.createdBy = [req.user._id];
     note.lastUpdatedBy = [req.user._id];
 
-    const doc = await model.create(req.body);
+    const doc = await model.create(note);
 
     const { _doc } = doc;
     const { __v, ...rest } = _doc;
     const createdDoc = rest;
+
+    // console.log(createdDoc.notebook);
+    // console.log(createdDoc._id);
+
+    // updating the notebook entry so that it featues this note's id
+    const updatedNotebook = await Notebook.findOneAndUpdate(
+      { _id: createdDoc.notebook },
+      { $push: { notes: createdDoc._id } }
+    ).exec();
+
+    // update the note's hasAccess to feature everyone in the notebooks has Access
+
+    console.log('note', createdDoc.hasAccess);
+    console.log('notebook', updatedNotebook.hasAccess);
+
+    doc.hasAccess = updatedNotebook.hasAccess;
+    await doc.save();
 
     res.status(201).json(createdDoc);
   } catch (e) {
@@ -97,6 +115,11 @@ export const updateOne = (model) => async (req, res) => {
         if (doc.locked === true) {
           return res.status(400).end();
         }
+      }
+
+      // updates to the hasAccess fields are handled by different routes
+      if (noteUpdates.hasAccess) {
+        delete noteUpdates.hasAccess;
       }
 
       // update the document
@@ -147,12 +170,67 @@ export const removeOne = (model) => async (req, res) => {
   }
 };
 
+export const addToHasAccess = (model) => async (req, res) => {
+  try {
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
+    const userToAdd = req.body._id;
+    const oldAccessArray = doc.hasAccess;
+
+    if (!userToAdd) {
+      return res.status(400).end();
+    }
+
+    // check if the user is included in the old access array
+    const alreadyHasAccess = oldAccessArray.filter((oldUser) => {
+      return oldUser.toString() === userToAdd;
+    });
+
+    if (alreadyHasAccess.length > 0) {
+      return res.status(400).end();
+    }
+
+    // append the new user to the old access array
+    oldAccessArray.push(userToAdd);
+
+    // update the document
+    const updatedDoc = await model
+      .findOneAndUpdate(
+        { _id: req.params.id },
+        { hasAccess: oldAccessArray },
+        {
+          new: true,
+        }
+      )
+      .select('-__v')
+      .exec();
+
+    if (!updatedDoc) {
+      return res.status(404).end();
+    }
+
+    res.status(200).json(updatedDoc);
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+};
+
 const crudControllers = (model) => ({
   getOne: getOne(model),
   //   getMany: getMany(model),
   createOne: createOne(model),
   updateOne: updateOne(model),
   removeOne: removeOne(model),
+  addToHasAccess: addToHasAccess(model),
 });
 
 export default crudControllers(Note);

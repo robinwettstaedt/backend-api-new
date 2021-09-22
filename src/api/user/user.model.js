@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     },
     username: {
       type: String,
+      required: true,
     },
     firstName: {
       type: String,
@@ -44,7 +45,7 @@ const userSchema = new mongoose.Schema(
       },
       notifications: {
         type: String,
-        enum: ['ALL', 'TODOS', 'NONE'],
+        enum: ['ALL', 'TODOS', 'INVITES', 'NONE'],
         default: 'ALL',
       },
     },
