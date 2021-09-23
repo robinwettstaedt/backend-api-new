@@ -98,7 +98,7 @@ export const refreshAccessToken = async (req, res) => {
   try {
     payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(401).send({ message: 'invalid' });
   }
 

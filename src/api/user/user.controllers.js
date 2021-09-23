@@ -3,7 +3,6 @@ import { User } from './user.model.js';
 export const getOne = (model) => async (req, res) => {
   try {
     const user = req.user; // user object that gets attached by the protect() middleware
-    console.log(user);
     res.status(200).send({ user: user });
   } catch (e) {
     console.error(e);
@@ -26,7 +25,6 @@ export const updateOne = (model) => async (req, res) => {
       return res.status(400).end();
     }
 
-    console.log(updatedDoc);
     res.status(200).json({ data: updatedDoc });
   } catch (e) {
     console.error(e);

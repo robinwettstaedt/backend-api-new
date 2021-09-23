@@ -1,4 +1,5 @@
 import { Notebook } from './notebook.model.js';
+import { Note } from '../note/note.model.js';
 
 const userHasAccess = (doc, user_id) => {
   const matchingUserID = doc.hasAccess.filter((docUserID) => {
@@ -95,27 +96,6 @@ export const updateOne = (model) => async (req, res) => {
         delete notebookUpdates.hasAccess;
       }
 
-      // client wants to alter the hasAccess field
-      // make sure it always includes the client
-      //   if (notebookUpdates.hasAccess) {
-      //     if (!notebookUpdates.hasAccess.includes(req.user._id)) {
-      //       notebookUpdates.hasAccess.push(req.user._id);
-      //     }
-      //     if (!notebookUpdates.hasAccess.includes(doc.createdBy)) {
-      //       notebookUpdates.hasAccess.push(doc.createdBy);
-      //     }
-      //   }
-
-      if (notebookUpdates.hasAccess) {
-        if (req.user._id !== doc.createdBy) {
-          //   notebookUpdates.hasAccess === [];
-          delete notebookUpdates.hasAccess;
-        }
-        if (!notebookUpdates.hasAccess.includes(doc.createdBy)) {
-          notebookUpdates.hasAccess.push(doc.createdBy);
-        }
-      }
-
       // update the document
       const updatedDoc = await model
         .findOneAndUpdate({ _id: req.params.id }, notebookUpdates, {
@@ -178,26 +158,122 @@ export const addToHasAccess = (model) => async (req, res) => {
       return res.status(403).end();
     }
 
-    const accessUpdates = req.body;
+    const userToAdd = req.body._id;
+    const oldAccessArray = doc.hasAccess;
 
-    if (!accessUpdates.hasAccess) {
-      return res.status(400).end();
+    if (!userToAdd) {
+      return res.status(400).json({
+        message: 'No valid user to remove was given in the request body',
+      });
     }
 
-    doc.hasAccess.push(accessUpdates.hasAccess);
-    const updatedDoc = await doc.save();
+    // check if the user is included in the old access array
+    const alreadyHasAccess = oldAccessArray.filter((oldUser) => {
+      return oldUser.toString() === userToAdd;
+    });
+
+    if (alreadyHasAccess.length > 0) {
+      return res.status(400).json({
+        message: 'User does already have access',
+      });
+    }
+
+    // append the new user to the old access array
+    oldAccessArray.push(userToAdd);
+
+    // renaming the array
+    const newAccessArray = oldAccessArray;
 
     // update the document
-    // const updatedDoc = await model
-    //   .findOneAndUpdate({ _id: req.params.id }, notebookUpdates, {
-    //     new: true,
-    //   })
-    //   .select('-__v')
-    //   .exec();
+    const updatedDoc = await model
+      .findOneAndUpdate(
+        { _id: req.params.id },
+        { hasAccess: newAccessArray },
+        {
+          new: true,
+        }
+      )
+      .select('-__v')
+      .exec();
 
-    // if (!updatedDoc) {
-    //   return res.status(404).end();
-    // }
+    if (!updatedDoc) {
+      return res.status(404).end();
+    }
+
+    // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
+    for (const noteID of updatedDoc.notes) {
+      await Note.updateOne({ _id: noteID }, { hasAccess: newAccessArray });
+    }
+
+    res.status(200).json(updatedDoc);
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+};
+
+export const removeFromHasAccess = (model) => async (req, res) => {
+  try {
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
+    const userToRemove = req.body._id;
+    const oldAccessArray = doc.hasAccess;
+
+    if (!userToRemove) {
+      return res.status(400).json({
+        message: 'No valid user to remove was given in the request body',
+      });
+    }
+
+    if (doc.createdBy.equals(userToRemove)) {
+      return res.status(400).json({
+        message: 'Can not remove self from having access to the document',
+      });
+    }
+
+    // filter out the user to remove
+    const removedFromAccessArray = oldAccessArray.filter((oldUser) => {
+      return oldUser.toString() !== userToRemove;
+    });
+
+    // if the array did not get smaller through filtering, the user to remove did not have access
+    if (removedFromAccessArray.length === oldAccessArray.length) {
+      return res.status(400).json({
+        message: 'User to be removed from having access has no access',
+      });
+    }
+
+    // update the document
+    const updatedDoc = await model
+      .findOneAndUpdate(
+        { _id: req.params.id },
+        { hasAccess: removedFromAccessArray },
+        {
+          new: true,
+        }
+      )
+      .select('-__v')
+      .exec();
+
+    if (!updatedDoc) {
+      return res.status(404).end();
+    }
+
+    // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
+    for (const noteID of updatedDoc.notes) {
+      await Note.updateOne(
+        { _id: noteID },
+        { hasAccess: removedFromAccessArray }
+      );
+    }
 
     res.status(200).json(updatedDoc);
   } catch (e) {
@@ -213,6 +289,7 @@ const crudControllers = (model) => ({
   updateOne: updateOne(model),
   removeOne: removeOne(model),
   addToHasAccess: addToHasAccess(model),
+  removeFromHasAccess: removeFromHasAccess(model),
 });
 
 export default crudControllers(Notebook);

@@ -15,6 +15,6 @@ router
   .delete(controllers.removeOne);
 
 router.route('/:id/access/add').put(controllers.addToHasAccess);
-router.route('/:id/access/remove').put();
+router.route('/:id/access/remove').put(controllers.removeFromHasAccess);
 
 export default router;
