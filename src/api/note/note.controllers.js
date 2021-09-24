@@ -2,8 +2,8 @@ import { Notebook } from '../notebook/notebook.model.js';
 import { Note } from './note.model.js';
 
 const userHasAccess = (doc, user_id) => {
-  const matchingUserID = doc.hasAccess.filter((docUserID) => {
-    return docUserID.equals(user_id);
+  const matchingUserID = doc.hasAccess.filter((docUserObj) => {
+    return docUserObj._id.equals(user_id);
   });
 
   if (matchingUserID.length > 0) {
@@ -22,6 +22,7 @@ export const getOne = (model) => async (req, res) => {
     const doc = await model
       .findOne({ _id: req.params.id })
       .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
       .lean()
       .exec();
 
@@ -62,11 +63,7 @@ export const createOne = (model) => async (req, res) => {
     note.createdBy = [req.user._id];
     note.lastUpdatedBy = [req.user._id];
 
-    const doc = await model.create(note);
-
-    const { _doc } = doc;
-    const { __v, ...rest } = _doc;
-    const createdDoc = rest;
+    const createdDoc = await model.create(note);
 
     // updating the notebook entry so that it featues this note's id
     const updatedNotebook = await Notebook.findOneAndUpdate(
@@ -76,10 +73,17 @@ export const createOne = (model) => async (req, res) => {
 
     // update the note's hasAccess to feature everyone in the notebooks has Access
 
-    doc.hasAccess = updatedNotebook.hasAccess;
-    await doc.save();
+    createdDoc.hasAccess = updatedNotebook.hasAccess;
+    await createdDoc.save();
 
-    res.status(201).json(createdDoc);
+    const doc = await model
+      .findOne({ _id: createdDoc._id })
+      .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
+      .lean()
+      .exec();
+
+    res.status(201).json(doc);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -88,7 +92,12 @@ export const createOne = (model) => async (req, res) => {
 
 export const updateOne = (model) => async (req, res) => {
   try {
-    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+    const doc = await model
+      .findOne({ _id: req.params.id })
+      .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
+      .lean()
+      .exec();
 
     if (!doc) {
       return res.status(404).end();
@@ -107,7 +116,9 @@ export const updateOne = (model) => async (req, res) => {
 
       if (noteUpdates.content) {
         if (doc.locked === true) {
-          return res.status(400).end();
+          return res.status(400).json({
+            message: 'Note content can not be changed as the Note is locked',
+          });
         }
       }
 
@@ -120,6 +131,7 @@ export const updateOne = (model) => async (req, res) => {
       const updatedDoc = await model
         .findOneAndUpdate({ _id: req.params.id }, noteUpdates, { new: true })
         .select('-__v')
+        .populate('hasAccess', '_id email firstName picture')
         .exec();
 
       if (!updatedDoc) {
@@ -138,7 +150,12 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+    const doc = await model
+      .findOne({ _id: req.params.id })
+      .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
+      .lean()
+      .exec();
 
     if (!doc) {
       return res.status(404).end();
@@ -148,6 +165,7 @@ export const removeOne = (model) => async (req, res) => {
       const removed = await model
         .findOneAndRemove({ _id: req.params.id })
         .select('-__v')
+        .populate('hasAccess', '_id email firstName picture')
         .exec();
 
       if (!removed) {
@@ -212,6 +230,7 @@ export const addToHasAccess = (model) => async (req, res) => {
         }
       )
       .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
       .exec();
 
     if (!updatedDoc) {
@@ -274,6 +293,7 @@ export const removeFromHasAccess = (model) => async (req, res) => {
         }
       )
       .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
       .exec();
 
     if (!updatedDoc) {
