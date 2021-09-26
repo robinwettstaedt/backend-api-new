@@ -24,12 +24,12 @@ router
   .post(noteInviteControllers.createOne);
 
 router
-  .route('/:id/invites/:invite_id')
+  .route('/invites/:invite_id')
   // when an invite is cancelled by the inviter
   .delete(noteInviteControllers.removeOne);
 
 router
-  .route('/:id/invites/:invite_id/accept')
+  .route('/invites/:invite_id/accept')
   .delete(noteInviteControllers.acceptOne);
 
 export default router;

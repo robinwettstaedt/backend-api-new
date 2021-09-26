@@ -1,9 +1,10 @@
+import { Note } from '../note/note.model.js';
 import { Notebook } from '../notebook/notebook.model.js';
 import { NotebookInvite } from './notebookInvite.model.js';
 
 export const getMany = (model) => async (req, res) => {
   try {
-    docs = await model.find({ notebook: req.body._id }).lean().exec();
+    const docs = await model.find({ notebook: req.params.id }).lean().exec();
 
     if (!docs) return res.status(404).end();
 
@@ -16,11 +17,44 @@ export const getMany = (model) => async (req, res) => {
 
 export const createOne = (model) => async (req, res) => {
   try {
-    const createdDoc = await model.create({
+    const newInvite = {
       notebook: req.params.id,
       inviter: req.user._id,
       receiver: req.body.receiver,
+    };
+
+    if (newInvite.inviter.equals(newInvite.receiver)) {
+      return res.status(400).json({ message: 'Can not invite yourself' });
+    }
+
+    const notebook = await Notebook.findOne({
+      _id: newInvite.notebook,
+    })
+      .lean()
+      .exec();
+
+    if (!notebook.createdBy.equals(newInvite.inviter)) {
+      return res.status(403).end();
+    }
+
+    // check if the user is included in the old access array
+    const alreadyHasAccess = notebook.hasAccess.filter((oldUser) => {
+      return oldUser.toString() === newInvite.receiver;
     });
+
+    if (alreadyHasAccess.length > 0) {
+      return res.status(400).json({
+        message: 'User does already have access',
+      });
+    }
+
+    const inviteAlreadyExists = await model.exists(newInvite);
+
+    if (inviteAlreadyExists) {
+      return res.status(400).json({ message: 'Invite already exists' });
+    }
+
+    const createdDoc = await model.create(newInvite);
 
     const doc = await model
       .findOne({ _id: createdDoc._id })
@@ -97,14 +131,20 @@ export const acceptOne = (model) => async (req, res) => {
     const newAccessArray = oldAccessArray;
 
     // update the notebook
-    const updatedDoc = await Notebook.findOneAndUpdate(
+    const updatedNotebook = await Notebook.findOneAndUpdate(
       { _id: invite.notebook },
       { hasAccess: newAccessArray }
     ).exec();
 
-    if (!updatedDoc) {
+    if (!updatedNotebook) {
       return res.status(404).end();
     }
+
+    // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
+    for (const noteID of updatedNotebook.notes) {
+      await Note.updateOne({ _id: noteID }, { hasAccess: newAccessArray });
+    }
+
     // ######################################################
 
     // deleting the accepted invite
