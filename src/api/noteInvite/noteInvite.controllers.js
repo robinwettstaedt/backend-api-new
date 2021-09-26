@@ -1,5 +1,5 @@
-import { NoteInvite } from './noteInvite.model.js';
 import { Note } from '../note/note.model.js';
+import { NoteInvite } from './noteInvite.model.js';
 
 export const getMany = (model) => async (req, res) => {
   try {
@@ -17,17 +17,40 @@ export const getMany = (model) => async (req, res) => {
 export const createOne = (model) => async (req, res) => {
   try {
     const newInvite = {
-      notebook: req.params.id,
+      note: req.params.id,
       inviter: req.user._id,
       receiver: req.body.receiver,
     };
 
-    const inviteAlreadyExists = await model.find(newInvite);
+    if (newInvite.inviter.equals(newInvite.receiver)) {
+      return res.status(400).json({ message: 'Can not invite yourself' });
+    }
 
-    console.log(inviteAlreadyExists);
+    const note = await Note.findOne({
+      _id: newInvite.note,
+    })
+      .lean()
+      .exec();
 
-    if (inviteAlreadyExists._id !== null) {
-      return res.status(413).json({ message: 'Invite already exists' });
+    if (!note.createdBy.equals(newInvite.inviter)) {
+      return res.status(403).end();
+    }
+
+    // check if the user is included in the old access array
+    const alreadyHasAccess = note.hasAccess.filter((oldUser) => {
+      return oldUser.toString() === newInvite.receiver;
+    });
+
+    if (alreadyHasAccess.length > 0) {
+      return res.status(400).json({
+        message: 'User does already have access',
+      });
+    }
+
+    const inviteAlreadyExists = await model.exists(newInvite);
+
+    if (inviteAlreadyExists) {
+      return res.status(400).json({ message: 'Invite already exists' });
     }
 
     const createdDoc = await model.create(newInvite);
@@ -78,16 +101,14 @@ export const acceptOne = (model) => async (req, res) => {
     if (!invite.receiver.equals(req.user._id)) return res.status(403).end();
 
     // changing the hasAccess field of the corresponding notebook #######################
-    const notebook = await Notebook.findOne({ _id: invite.notebook })
-      .lean()
-      .exec();
+    const note = await Note.findOne({ _id: invite.note }).lean().exec();
 
-    if (!notebook) {
+    if (!note) {
       return res.status(404).end();
     }
 
     const userToAdd = invite.receiver;
-    const oldAccessArray = notebook.hasAccess;
+    const oldAccessArray = note.hasAccess;
 
     // check if the user is included in the old access array
     const alreadyHasAccess = oldAccessArray.filter((oldUser) => {
@@ -107,14 +128,15 @@ export const acceptOne = (model) => async (req, res) => {
     const newAccessArray = oldAccessArray;
 
     // update the notebook
-    const updatedDoc = await Notebook.findOneAndUpdate(
-      { _id: invite.notebook },
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: invite.note },
       { hasAccess: newAccessArray }
     ).exec();
 
-    if (!updatedDoc) {
+    if (!updatedNote) {
       return res.status(404).end();
     }
+
     // ######################################################
 
     // deleting the accepted invite
@@ -142,4 +164,4 @@ const crudControllers = (model) => ({
   acceptOne: acceptOne(model),
 });
 
-export default crudControllers(NotebookInvite);
+export default crudControllers(NoteInvite);

@@ -1,6 +1,6 @@
 import express from 'express';
 import controllers from './notebook.controllers.js';
-import noteInviteControllers from '../notebookInvite/notebookInvite.controllers.js';
+import notebookInviteControllers from '../notebookInvite/notebookInvite.controllers.js';
 
 const router = express.Router();
 
@@ -20,16 +20,16 @@ router.route('/:id/access/remove').put(controllers.removeFromHasAccess);
 
 router
   .route('/:id/invites')
-  .get(noteInviteControllers.getMany)
-  .post(noteInviteControllers.createOne);
+  .get(notebookInviteControllers.getMany)
+  .post(notebookInviteControllers.createOne);
 
 router
   .route('/invites/:invite_id')
   // when an invite is cancelled by the inviter
-  .delete(noteInviteControllers.removeOne);
+  .delete(notebookInviteControllers.removeOne);
 
 router
   .route('/invites/:invite_id/accept')
-  .delete(noteInviteControllers.acceptOne);
+  .delete(notebookInviteControllers.acceptOne);
 
 export default router;
