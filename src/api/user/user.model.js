@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema(
         enum: ['ALL', 'TODOS', 'INVITES', 'NONE'],
         default: 'ALL',
       },
+      invites: {
+        type: Boolean,
+        default: true,
+      },
     },
     notebooks: {
       type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'notebook' }],

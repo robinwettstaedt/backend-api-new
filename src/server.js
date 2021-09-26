@@ -15,7 +15,6 @@ import {
   protect,
 } from './utils/auth.js';
 import { googleAuthController } from './utils/googleauth.js';
-import exampleRouter from './api/templates/example.router.js';
 import noteRouter from './api/note/note.router.js';
 import notebookRouter from './api/notebook/notebook.router.js';
 import userRouter from './api/user/user.router.js';
@@ -42,8 +41,11 @@ app.post('/signout', signout);
 app.post('/signinwithgoogle', googleAuthController);
 
 app.use('/api', protect);
-app.use('/api/v1/note', noteRouter);
+
 app.use('/api/v1/user', userRouter);
+
+app.use('/api/v1/note', noteRouter);
+
 app.use('/api/v1/notebook', notebookRouter);
 
 app.use('*', (req, res) => res.status(404).json({ error: 'invalid route' }));

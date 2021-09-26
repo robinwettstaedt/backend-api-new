@@ -53,11 +53,25 @@ export const removeOne = (model) => async (req, res) => {
   }
 };
 
+export const getInvites = (model) => async (req, res) => {
+  try {
+    docs = await model.find({ receiver: req.user._id }).lean().exec();
+
+    if (!docs) return res.status(404).end();
+
+    res.status(200).json(docs);
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+};
+
 const crudControllers = (model) => ({
   getOne: getOne(model),
   //   getMany: getMany(model),
   updateOne: updateOne(model),
   removeOne: removeOne(model),
+  getInvites: getInvites(model),
 });
 
 export default crudControllers(User);

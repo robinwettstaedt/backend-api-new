@@ -9,4 +9,6 @@ router
   .put(controllers.updateOne)
   .delete(controllers.removeOne);
 
+router.route('/invites').get(controllers.getInvites);
+
 export default router;
