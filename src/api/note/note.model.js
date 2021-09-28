@@ -53,6 +53,4 @@ export const noteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-noteSchema.index({}, {});
-
 export const Note = mongoose.model('note', noteSchema);

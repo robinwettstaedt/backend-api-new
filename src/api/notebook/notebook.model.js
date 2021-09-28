@@ -36,6 +36,4 @@ export const notebookSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-notebookSchema.index({}, {});
-
 export const Notebook = mongoose.model('notebook', notebookSchema);
