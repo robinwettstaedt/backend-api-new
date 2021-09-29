@@ -15,6 +15,10 @@ export const getOne = (model) => async (req, res) => {
       return res.status(404).end();
     }
 
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
     res.status(200).json(doc);
   } catch (e) {
     console.error(e);
@@ -100,6 +104,20 @@ export const updateOne = (model) => async (req, res) => {
           message: `<repeating> value has to be one of the following: ${REPEATING_ENUM}`,
         });
       }
+    }
+
+    const doc = await model
+      .findOne({ _id: req.params.id })
+      .select('-__v')
+      .lean()
+      .exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
     }
 
     const updatedDoc = await model
