@@ -1,5 +1,8 @@
 import { Todo } from './todo.model.js';
 
+const PRIORITY_ENUM = ['HIGHEST', 'HIGH', 'MEDIUM', 'LOW', 'LOWEST'];
+const REPEATING_ENUM = ['MAYBE', 'NOT', 'NEEDED'];
+
 export const getOne = (model) => async (req, res) => {
   try {
     const doc = await model
@@ -42,6 +45,22 @@ export const createOne = (model) => async (req, res) => {
   try {
     const todo = req.body;
 
+    if (todo.priority) {
+      if (!PRIORITY_ENUM.includes(todo.priority)) {
+        return res.status(400).json({
+          message: `<priority> value has to be one of the following: ${PRIORITY_ENUM}`,
+        });
+      }
+    }
+
+    if (todo.repeating) {
+      if (!REPEATING_ENUM.includes(todo.repeating)) {
+        return res.status(400).json({
+          message: `<repeating> value has to be one of the following: ${REPEATING_ENUM}`,
+        });
+      }
+    }
+
     todo.createdBy = req.user._id;
 
     const createdDoc = await model.create(todo);
@@ -66,6 +85,22 @@ export const createOne = (model) => async (req, res) => {
 export const updateOne = (model) => async (req, res) => {
   try {
     const todoUpdates = req.body;
+
+    if (todoUpdates.priority) {
+      if (!PRIORITY_ENUM.includes(todoUpdates.priority)) {
+        return res.status(400).json({
+          message: `<priority> value has to be one of the following: ${PRIORITY_ENUM}`,
+        });
+      }
+    }
+
+    if (todoUpdates.repeating) {
+      if (!REPEATING_ENUM.includes(todoUpdates.repeating)) {
+        return res.status(400).json({
+          message: `<repeating> value has to be one of the following: ${REPEATING_ENUM}`,
+        });
+      }
+    }
 
     const updatedDoc = await model
       .findOneAndUpdate({ _id: req.params.id }, todoUpdates, { new: true })

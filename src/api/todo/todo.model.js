@@ -29,7 +29,6 @@ export const todoSchema = new mongoose.Schema(
     priority: {
       type: String,
       required: true,
-      enum: ['HIGHEST', 'HIGH', 'MEDIUM', 'LOW', 'LOWEST'],
     },
     notification: {
       type: Boolean,
@@ -37,7 +36,6 @@ export const todoSchema = new mongoose.Schema(
     },
     repeating: {
       type: String,
-      enum: ['MAYBE', 'NOT', 'NEEDED'],
     },
     deleted: {
       type: Boolean,
