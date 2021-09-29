@@ -34,7 +34,6 @@ export const todoSchema = new mongoose.Schema(
     notification: {
       type: Boolean,
       required: true,
-      default: false,
     },
     repeating: {
       type: String,

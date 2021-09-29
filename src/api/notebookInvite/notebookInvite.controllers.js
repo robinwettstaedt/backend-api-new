@@ -4,7 +4,11 @@ import { NotebookInvite } from './notebookInvite.model.js';
 
 export const getMany = (model) => async (req, res) => {
   try {
-    const docs = await model.find({ notebook: req.params.id }).lean().exec();
+    const docs = await model
+      .find({ notebook: req.params.id })
+      .lean()
+      .select('-__v')
+      .exec();
 
     if (!docs) return res.status(404).end();
 

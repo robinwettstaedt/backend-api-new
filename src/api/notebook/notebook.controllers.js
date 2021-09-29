@@ -58,7 +58,7 @@ export const createOne = (model) => async (req, res) => {
     const notebook = req.body;
 
     notebook.hasAccess = [req.user._id];
-    notebook.createdBy = [req.user._id];
+    notebook.createdBy = req.user._id;
 
     const createdDoc = await model.create(notebook);
 
@@ -69,6 +69,10 @@ export const createOne = (model) => async (req, res) => {
       .populate('hasAccess', '_id email firstName picture')
       .lean()
       .exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
 
     res.status(201).json(doc);
   } catch (e) {

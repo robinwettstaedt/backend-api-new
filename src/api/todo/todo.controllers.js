@@ -2,13 +2,9 @@ import { Todo } from './todo.model.js';
 
 export const getOne = (model) => async (req, res) => {
   try {
-    // .lean() gets back POJO instead of mongoose object
-    // If you're executing a query and sending the results without modification to, say, an Express response, you should use lean.
-    // In general, if you do not modify the query results and do not use custom getters, you should use lean()
     const doc = await model
       .findOne({ _id: req.params.id })
       .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
       .lean()
       .exec();
 
@@ -16,11 +12,7 @@ export const getOne = (model) => async (req, res) => {
       return res.status(404).end();
     }
 
-    if (userHasAccess(doc, req.user._id)) {
-      return res.status(200).json(doc);
-    }
-
-    res.status(403).end();
+    res.status(200).json(doc);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -29,9 +21,15 @@ export const getOne = (model) => async (req, res) => {
 
 export const getMany = (model) => async (req, res) => {
   try {
-    const docs = await model.find({ notebook: req.params.id }).lean().exec();
+    const docs = await model
+      .find({ createdBy: req.user._id })
+      .lean()
+      .select('-__v')
+      .exec();
 
-    if (!docs) return res.status(404).end();
+    if (!docs) {
+      return res.status(404).end();
+    }
 
     res.status(200).json(docs);
   } catch (e) {
@@ -42,31 +40,21 @@ export const getMany = (model) => async (req, res) => {
 
 export const createOne = (model) => async (req, res) => {
   try {
-    const note = req.body;
+    const todo = req.body;
 
-    note.hasAccess = [req.user._id];
-    note.createdBy = [req.user._id];
-    note.lastUpdatedBy = [req.user._id];
+    todo.createdBy = req.user._id;
 
-    const createdDoc = await model.create(note);
-
-    // updating the notebook entry so that it featues this note's id
-    const updatedNotebook = await Notebook.findOneAndUpdate(
-      { _id: createdDoc.notebook },
-      { $push: { notes: createdDoc._id } }
-    ).exec();
-
-    // update the note's hasAccess to feature everyone in the notebooks has Access
-
-    createdDoc.hasAccess = updatedNotebook.hasAccess;
-    await createdDoc.save();
+    const createdDoc = await model.create(todo);
 
     const doc = await model
       .findOne({ _id: createdDoc._id })
       .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
       .lean()
       .exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
 
     res.status(201).json(doc);
   } catch (e) {
@@ -77,56 +65,18 @@ export const createOne = (model) => async (req, res) => {
 
 export const updateOne = (model) => async (req, res) => {
   try {
-    const doc = await model
-      .findOne({ _id: req.params.id })
+    const todoUpdates = req.body;
+
+    const updatedDoc = await model
+      .findOneAndUpdate({ _id: req.params.id }, todoUpdates, { new: true })
       .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
-      .lean()
       .exec();
 
-    if (!doc) {
+    if (!updatedDoc) {
       return res.status(404).end();
     }
 
-    if (userHasAccess(doc, req.user._id)) {
-      const noteUpdates = req.body;
-
-      // check for deletion status
-      if (noteUpdates.deleted === true) {
-        noteUpdates.deletedAt = Date.now();
-      }
-      if (noteUpdates.deleted === false) {
-        noteUpdates.deletedAt = null;
-      }
-
-      if (noteUpdates.content) {
-        if (doc.locked === true) {
-          return res.status(400).json({
-            message: 'Note content can not be changed as the Note is locked',
-          });
-        }
-      }
-
-      // updates to the hasAccess fields are handled by different routes
-      if (noteUpdates.hasAccess) {
-        delete noteUpdates.hasAccess;
-      }
-
-      // update the document
-      const updatedDoc = await model
-        .findOneAndUpdate({ _id: req.params.id }, noteUpdates, { new: true })
-        .select('-__v')
-        .populate('hasAccess', '_id email firstName picture')
-        .exec();
-
-      if (!updatedDoc) {
-        return res.status(404).end();
-      }
-
-      return res.status(200).json(updatedDoc);
-    }
-
-    res.status(403).end();
+    res.status(200).json(updatedDoc);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -135,32 +85,16 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    const doc = await model
-      .findOne({ _id: req.params.id })
+    const removedDoc = await model
+      .findOneAndRemove({ _id: req.params.id })
       .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
-      .lean()
       .exec();
 
-    if (!doc) {
+    if (!removedDoc) {
       return res.status(404).end();
     }
 
-    if (userHasAccess(doc, req.user._id)) {
-      const removed = await model
-        .findOneAndRemove({ _id: req.params.id })
-        .select('-__v')
-        .populate('hasAccess', '_id email firstName picture')
-        .exec();
-
-      if (!removed) {
-        return res.status(404).end();
-      }
-
-      return res.status(200).json(removed);
-    }
-
-    res.status(403).end();
+    res.status(200).json(removedDoc);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -168,6 +102,7 @@ export const removeOne = (model) => async (req, res) => {
 };
 
 // see if that somehow works #######################################################################
+// remove all where createdBy === user._id && dueDate is older than today - 48? hrs
 export const removeMany = (model) => async (req, res) => {
   try {
     const doc = await model
