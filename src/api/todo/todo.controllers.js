@@ -120,6 +120,13 @@ export const updateOne = (model) => async (req, res) => {
       return res.status(403).end();
     }
 
+    // marking todo as deleted
+    if (todoUpdates.deleted === true && doc.deleted === false) {
+      todoUpdates.deletedAt = Date.now();
+    } else if (todoUpdates.deleted === false && doc.deleted === true) {
+      todoUpdates.deletedAt = undefined;
+    }
+
     const updatedDoc = await model
       .findOneAndUpdate({ _id: req.params.id }, todoUpdates, { new: true })
       .select('-__v')
@@ -138,6 +145,16 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+    if (!doc) {
+      return res.status(404).end();
+    }
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
     const removedDoc = await model
       .findOneAndRemove({ _id: req.params.id })
       .select('-__v')
@@ -158,32 +175,19 @@ export const removeOne = (model) => async (req, res) => {
 // remove all where createdBy === user._id && dueDate is older than today - 48? hrs
 export const removeMany = (model) => async (req, res) => {
   try {
-    const doc = await model
-      .findOne({ _id: req.params.id })
-      .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
+    const docs = await model
+      .deleteMany({
+        createdBy: req.user._id,
+        dueDate: { $lt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+      })
       .lean()
       .exec();
 
-    if (!doc) {
+    if (!docs) {
       return res.status(404).end();
     }
 
-    if (userHasAccess(doc, req.user._id)) {
-      const removed = await model
-        .findOneAndRemove({ _id: req.params.id })
-        .select('-__v')
-        .populate('hasAccess', '_id email firstName picture')
-        .exec();
-
-      if (!removed) {
-        return res.status(404).end();
-      }
-
-      return res.status(200).json(removed);
-    }
-
-    res.status(403).end();
+    res.status(200).json(docs);
   } catch (e) {
     console.error(e);
     res.status(400).end();

@@ -157,7 +157,6 @@ export const removeOne = (model) => async (req, res) => {
     const doc = await model
       .findOne({ _id: req.params.id })
       .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
       .lean()
       .exec();
 

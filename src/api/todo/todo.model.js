@@ -44,9 +44,7 @@ export const todoSchema = new mongoose.Schema(
     },
     deletedAt: {
       type: mongoose.SchemaTypes.Date,
-      required: function () {
-        return this.deleted;
-      },
+      //   required: this.deleted ? true : false,
     },
   },
   { timestamps: true }
