@@ -8,6 +8,8 @@ export const getMany = (model) => async (req, res) => {
       .find({ notebook: req.params.id })
       .lean()
       .select('-__v')
+      .populate('inviter', '_id email firstName picture')
+      .populate('receiver', '_id email firstName picture')
       .exec();
 
     if (!docs) return res.status(404).end();
@@ -63,6 +65,7 @@ export const createOne = (model) => async (req, res) => {
     const doc = await model
       .findOne({ _id: createdDoc._id })
       .select('-__v')
+      .populate('inviter', '_id email firstName picture')
       .populate('receiver', '_id email firstName picture')
       .lean()
       .exec();
@@ -80,6 +83,8 @@ export const removeOne = (model) => async (req, res) => {
     const removed = await model
       .findOneAndRemove({ _id: req.params.invite_id })
       .select('-__v')
+      .populate('inviter', '_id email firstName picture')
+      .populate('receiver', '_id email firstName picture')
       .lean()
       .exec();
 
@@ -155,6 +160,8 @@ export const acceptOne = (model) => async (req, res) => {
     const removed = await model
       .findOneAndRemove({ _id: inviteID })
       .select('-__v')
+      .populate('inviter', '_id email firstName picture')
+      .populate('receiver', '_id email firstName picture')
       .lean()
       .exec();
 
