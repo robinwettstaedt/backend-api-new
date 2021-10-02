@@ -49,20 +49,29 @@ export const createOne = (model) => async (req, res) => {
   try {
     const todo = req.body;
 
-    if (todo.priority) {
-      if (!PRIORITY_ENUM.includes(todo.priority)) {
+    // check if the <propertu> value is legitimate
+    if (todoUpdates.priority) {
+      if (!PRIORITY_ENUM.includes(todoUpdates.priority)) {
         return res.status(400).json({
           message: `<priority> value has to be one of the following: ${PRIORITY_ENUM}`,
         });
       }
     }
 
-    if (todo.repeating) {
-      if (!REPEATING_ENUM.includes(todo.repeating)) {
+    // check if the <repeating> value is legitimate
+    if (todoUpdates.repeating) {
+      if (!REPEATING_ENUM.includes(todoUpdates.repeating)) {
         return res.status(400).json({
           message: `<repeating> value has to be one of the following: ${REPEATING_ENUM}`,
         });
       }
+    }
+
+    // changing the <deletedAt> field if the value of the <deleted> field changes
+    if (todo.deleted === true) {
+      todo.deletedAt = Date.now();
+    } else if (todo.deleted === false) {
+      todo.deletedAt = null;
     }
 
     todo.createdBy = req.user._id;
@@ -90,6 +99,7 @@ export const updateOne = (model) => async (req, res) => {
   try {
     const todoUpdates = req.body;
 
+    // check if the <propertu> value is legitimate
     if (todoUpdates.priority) {
       if (!PRIORITY_ENUM.includes(todoUpdates.priority)) {
         return res.status(400).json({
@@ -98,6 +108,7 @@ export const updateOne = (model) => async (req, res) => {
       }
     }
 
+    // check if the <repeating> value is legitimate
     if (todoUpdates.repeating) {
       if (!REPEATING_ENUM.includes(todoUpdates.repeating)) {
         return res.status(400).json({
@@ -106,33 +117,37 @@ export const updateOne = (model) => async (req, res) => {
       }
     }
 
-    const doc = await model
-      .findOne({ _id: req.params.id })
-      .select('-__v')
-      .lean()
-      .exec();
-
-    if (!doc) {
-      return res.status(404).end();
-    }
-
-    if (!doc.createdBy.equals(req.user._id)) {
-      return res.status(403).end();
-    }
-
-    // marking todo as deleted
-    if (todoUpdates.deleted === true && doc.deleted === false) {
+    // changing the <deletedAt> field if the value of the <deleted> field changes
+    if (todoUpdates.deleted === true) {
       todoUpdates.deletedAt = Date.now();
-    } else if (todoUpdates.deleted === false && doc.deleted === true) {
-      todoUpdates.deletedAt = undefined;
+    } else if (todoUpdates.deleted === false) {
+      todoUpdates.deletedAt = null;
     }
 
     const updatedDoc = await model
-      .findOneAndUpdate({ _id: req.params.id }, todoUpdates, { new: true })
+      .findOneAndUpdate(
+        { _id: req.params.id, createdBy: req.user._id },
+        todoUpdates,
+        { new: true }
+      )
       .select('-__v')
       .exec();
 
     if (!updatedDoc) {
+      const doc = await model
+        .findOne({ _id: req.params.id })
+        .select('-__v')
+        .lean()
+        .exec();
+
+      if (!doc) {
+        return res.status(404).end();
+      }
+
+      if (!doc.createdBy.equals(req.user._id)) {
+        return res.status(403).end();
+      }
+
       return res.status(404).end();
     }
 
@@ -145,22 +160,22 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
-
-    if (!doc) {
-      return res.status(404).end();
-    }
-
-    if (!doc.createdBy.equals(req.user._id)) {
-      return res.status(403).end();
-    }
-
     const removedDoc = await model
-      .findOneAndRemove({ _id: req.params.id })
+      .findOneAndRemove({ _id: req.params.id, createdBy: req.user._id })
       .select('-__v')
       .exec();
 
     if (!removedDoc) {
+      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+      if (!doc) {
+        return res.status(404).end();
+      }
+
+      if (!doc.createdBy.equals(req.user._id)) {
+        return res.status(403).end();
+      }
+
       return res.status(404).end();
     }
 
@@ -171,13 +186,13 @@ export const removeOne = (model) => async (req, res) => {
   }
 };
 
-// see if that somehow works #######################################################################
-// remove all where createdBy === user._id && dueDate is older than today - 48? hrs
+// REMOVES ALL TODOS with a dueDate older than 48 hrs
+// used locally on the server at timed intervals to clear up db space
 export const removeMany = (model) => async (req, res) => {
   try {
     const docs = await model
       .deleteMany({
-        createdBy: req.user._id,
+        // createdBy: req.user._id,
         dueDate: { $lt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
       })
       .lean()
