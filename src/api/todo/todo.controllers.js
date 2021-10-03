@@ -192,7 +192,6 @@ export const removeMany = (model) => async (req, res) => {
   try {
     const docs = await model
       .deleteMany({
-        // createdBy: req.user._id,
         dueDate: { $lt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
       })
       .lean()

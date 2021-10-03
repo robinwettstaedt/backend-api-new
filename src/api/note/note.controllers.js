@@ -67,12 +67,11 @@ export const createOne = (model) => async (req, res) => {
 
     // updating the notebook entry so that it featues this note's id
     const updatedNotebook = await Notebook.findOneAndUpdate(
-      { _id: createdDoc.notebook },
+      { _id: createdDoc.notebook, hasAccess: req.user._id },
       { $push: { notes: createdDoc._id } }
     ).exec();
 
-    // update the note's hasAccess to feature everyone in the notebooks has Access
-
+    // update the note's hasAccess to feature everyone in the notebooks hasAccess
     createdDoc.hasAccess = updatedNotebook.hasAccess;
     await createdDoc.save();
 
@@ -96,56 +95,62 @@ export const createOne = (model) => async (req, res) => {
 
 export const updateOne = (model) => async (req, res) => {
   try {
-    const doc = await model
-      .findOne({ _id: req.params.id })
-      .select('-__v')
-      .populate('hasAccess', '_id email firstName picture')
-      .lean()
-      .exec();
+    const noteUpdates = req.body;
+    noteUpdates.lastUpdatedBy = req.user._id;
 
-    if (!doc) {
-      return res.status(404).end();
+    // check for deletion status
+    if (noteUpdates.deleted === true) {
+      noteUpdates.deletedAt = Date.now();
+    }
+    if (noteUpdates.deleted === false) {
+      noteUpdates.deletedAt = null;
     }
 
-    if (userHasAccess(doc, req.user._id)) {
-      const noteUpdates = req.body;
+    // locked notes can not be updated
+    // locked should probably only be an indicator for the frontend
+    // if (noteUpdates.content) {
+    //   if (doc.locked === true) {
+    //     return res.status(400).json({
+    //       message: 'Note content can not be changed as the Note is locked',
+    //     });
+    //   }
+    // }
 
-      // check for deletion status
-      if (noteUpdates.deleted === true) {
-        noteUpdates.deletedAt = Date.now();
-      }
-      if (noteUpdates.deleted === false) {
-        noteUpdates.deletedAt = null;
-      }
+    // updates to the hasAccess fields are handled by different routes
+    if (noteUpdates.hasAccess) {
+      delete noteUpdates.hasAccess;
+    }
 
-      if (noteUpdates.content) {
-        if (doc.locked === true) {
-          return res.status(400).json({
-            message: 'Note content can not be changed as the Note is locked',
-          });
-        }
-      }
+    // update the document
+    const updatedDoc = await model
+      .findOneAndUpdate(
+        { _id: req.params.id, hasAccess: req.user._id },
+        noteUpdates,
+        { new: true }
+      )
+      .select('-__v')
+      .populate('hasAccess', '_id email firstName picture')
+      .exec();
 
-      // updates to the hasAccess fields are handled by different routes
-      if (noteUpdates.hasAccess) {
-        delete noteUpdates.hasAccess;
-      }
-
-      // update the document
-      const updatedDoc = await model
-        .findOneAndUpdate({ _id: req.params.id }, noteUpdates, { new: true })
+    if (!updatedDoc) {
+      const doc = await model
+        .findOne({ _id: req.params.id })
         .select('-__v')
-        .populate('hasAccess', '_id email firstName picture')
+        .lean()
         .exec();
 
-      if (!updatedDoc) {
+      if (!doc) {
         return res.status(404).end();
       }
 
-      return res.status(200).json(updatedDoc);
+      if (!userHasAccess(doc, req.user._id)) {
+        return res.status(403).end();
+      }
+
+      return res.status(404).end();
     }
 
-    res.status(403).end();
+    return res.status(200).json(updatedDoc);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -154,31 +159,27 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    const doc = await model
-      .findOne({ _id: req.params.id })
+    const removed = await model
+      .findOneAndRemove({ _id: req.params.id, hasAccess: req.user._id })
       .select('-__v')
-      .lean()
+      .populate('hasAccess', '_id email firstName picture')
       .exec();
 
-    if (!doc) {
-      return res.status(404).end();
-    }
+    if (!removed) {
+      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
 
-    if (userHasAccess(doc, req.user._id)) {
-      const removed = await model
-        .findOneAndRemove({ _id: req.params.id })
-        .select('-__v')
-        .populate('hasAccess', '_id email firstName picture')
-        .exec();
-
-      if (!removed) {
+      if (!doc) {
         return res.status(404).end();
       }
 
-      return res.status(200).json(removed);
+      if (!userHasAccess(doc, req.user._id)) {
+        return res.status(403).end();
+      }
+
+      return res.status(404).end();
     }
 
-    res.status(403).end();
+    return res.status(200).json(removed);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -187,18 +188,19 @@ export const removeOne = (model) => async (req, res) => {
 
 export const addToHasAccess = (model) => async (req, res) => {
   try {
-    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+    // const doc = await model.findOne({ _id: req.params.id }).lean().exec();
 
-    if (!doc) {
-      return res.status(404).end();
-    }
+    // if (!doc) {
+    //   return res.status(404).end();
+    // }
 
-    if (!doc.createdBy.equals(req.user._id)) {
-      return res.status(403).end();
-    }
+    // if (!doc.createdBy.equals(req.user._id)) {
+    //   return res.status(403).end();
+    // }
+
+    // const oldAccessArray = doc.hasAccess;
 
     const userToAdd = req.body._id;
-    const oldAccessArray = doc.hasAccess;
 
     if (!userToAdd) {
       return res.status(400).json({
@@ -206,28 +208,11 @@ export const addToHasAccess = (model) => async (req, res) => {
       });
     }
 
-    // check if the user is included in the old access array
-    const alreadyHasAccess = oldAccessArray.filter((oldUser) => {
-      return oldUser.toString() === userToAdd;
-    });
-
-    if (alreadyHasAccess.length > 0) {
-      return res.status(400).json({
-        message: 'User does already have access',
-      });
-    }
-
-    // append the new user to the old access array
-    oldAccessArray.push(userToAdd);
-
-    // renaming the array
-    const newAccessArray = oldAccessArray;
-
     // update the document
     const updatedDoc = await model
       .findOneAndUpdate(
-        { _id: req.params.id },
-        { hasAccess: newAccessArray },
+        { _id: req.params.id, hasAccess: req.user._id },
+        { $addToSet: { hasAccess: userToAdd } },
         {
           new: true,
         }
@@ -237,6 +222,16 @@ export const addToHasAccess = (model) => async (req, res) => {
       .exec();
 
     if (!updatedDoc) {
+      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+      if (!doc) {
+        return res.status(404).end();
+      }
+
+      if (!userHasAccess(doc, req.user._id)) {
+        return res.status(403).end();
+      }
+
       return res.status(404).end();
     }
 
@@ -249,48 +244,10 @@ export const addToHasAccess = (model) => async (req, res) => {
 
 export const removeFromHasAccess = (model) => async (req, res) => {
   try {
-    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
-
-    if (!doc) {
-      return res.status(404).end();
-    }
-
-    if (!doc.createdBy.equals(req.user._id)) {
-      return res.status(403).end();
-    }
-
-    const userToRemove = req.body._id;
-    const oldAccessArray = doc.hasAccess;
-
-    if (!userToRemove) {
-      return res.status(400).json({
-        message: 'No valid user to remove was given in the request body',
-      });
-    }
-
-    if (doc.createdBy.equals(userToRemove)) {
-      return res.status(400).json({
-        message: 'Can not remove self from having access to the document',
-      });
-    }
-
-    // filter out the user to remove
-    const removedFromAccessArray = oldAccessArray.filter((oldUser) => {
-      return oldUser.toString() !== userToRemove;
-    });
-
-    // if the array did not get smaller through filtering, the user to remove did not have access
-    if (removedFromAccessArray.length === oldAccessArray.length) {
-      return res.status(400).json({
-        message: 'User to be removed from having access has no access',
-      });
-    }
-
-    // update the document
     const updatedDoc = await model
       .findOneAndUpdate(
-        { _id: req.params.id },
-        { hasAccess: removedFromAccessArray },
+        { _id: req.params.id, hasAccess: req.user._id },
+        { $pullAll: { hasAccess: [req.body._id] } },
         {
           new: true,
         }
@@ -300,6 +257,16 @@ export const removeFromHasAccess = (model) => async (req, res) => {
       .exec();
 
     if (!updatedDoc) {
+      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+      if (!doc) {
+        return res.status(404).end();
+      }
+
+      if (!userHasAccess(doc, req.user._id)) {
+        return res.status(403).end();
+      }
+
       return res.status(404).end();
     }
 

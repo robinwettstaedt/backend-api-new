@@ -105,12 +105,15 @@ export const acceptOne = (model) => async (req, res) => {
 
     const invite = await model.findOne({ _id: inviteID }).lean().exec();
 
-    if (!invite) return res.status(404).json({ message: 'no invite found' });
-
+    if (!invite) {
+      return res.status(404).json({ message: 'no invite found' });
+    }
     // only the invite receiver can accept the invite
-    if (!invite.receiver.equals(req.user._id)) return res.status(403).end();
+    if (!invite.receiver.equals(req.user._id)) {
+      return res.status(403).end();
+    }
 
-    // changing the hasAccess field of the corresponding notebook #######################
+    // changing the hasAccess field of the corresponding notebook
     const notebook = await Notebook.findOne({ _id: invite.notebook })
       .lean()
       .exec();
@@ -153,8 +156,6 @@ export const acceptOne = (model) => async (req, res) => {
     for (const noteID of updatedNotebook.notes) {
       await Note.updateOne({ _id: noteID }, { hasAccess: newAccessArray });
     }
-
-    // ######################################################
 
     // deleting the accepted invite
     const removed = await model

@@ -156,10 +156,18 @@ export const removeOne = (model) => async (req, res) => {
 
 export const addToHasAccess = (model) => async (req, res) => {
   try {
+    const userToAdd = req.body._id;
+
+    if (!userToAdd) {
+      return res.status(400).json({
+        message: 'No valid user to remove was given in the request body',
+      });
+    }
+
     const updatedDoc = await model
       .findOneAndUpdate(
         { _id: req.params.id, hasAccess: req.user._id },
-        { $addToSet: { hasAccess: req.body._id } },
+        { $addToSet: { hasAccess: userToAdd } },
         {
           new: true,
         }
