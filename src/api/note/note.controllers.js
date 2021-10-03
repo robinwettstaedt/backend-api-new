@@ -106,16 +106,6 @@ export const updateOne = (model) => async (req, res) => {
       noteUpdates.deletedAt = null;
     }
 
-    // locked notes can not be updated
-    // locked should probably only be an indicator for the frontend
-    // if (noteUpdates.content) {
-    //   if (doc.locked === true) {
-    //     return res.status(400).json({
-    //       message: 'Note content can not be changed as the Note is locked',
-    //     });
-    //   }
-    // }
-
     // updates to the hasAccess fields are handled by different routes
     if (noteUpdates.hasAccess) {
       delete noteUpdates.hasAccess;

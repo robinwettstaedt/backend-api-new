@@ -25,7 +25,7 @@ router
 
 router
   .route('/invites/:invite_id')
-  // when an invite is cancelled by the inviter
+  // when an invite is cancelled by the inviter or rejected by the receiver
   .delete(notebookInviteControllers.removeOne);
 
 router
