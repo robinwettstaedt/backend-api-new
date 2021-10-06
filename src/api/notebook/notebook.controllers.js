@@ -12,12 +12,10 @@ const userHasAccess = (doc, user_id) => {
   return false;
 };
 
-// have to insert queries for each particular controller
-
 export const getOne = (model) => async (req, res) => {
   try {
     const doc = await model
-      .findOne({ _id: req.params.id })
+      .findOne({ _id: req.params.id, hasAccess: req.user._id })
       .select('-__v')
       .populate('notes', '_id title emoji deleted deletedAt visible')
       .populate('hasAccess', '_id email firstName picture')
@@ -25,14 +23,19 @@ export const getOne = (model) => async (req, res) => {
       .exec();
 
     if (!doc) {
-      return res.status(404).end();
+      const docWithoutAccess = await model
+        .findOne({ _id: req.params.id })
+        .lean()
+        .exec();
+
+      if (!docWithoutAccess) {
+        return res.status(404).end();
+      }
+
+      return res.status(403).end();
     }
 
-    if (userHasAccess(doc, req.user._id)) {
-      return res.status(200).json(doc);
-    }
-
-    res.status(403).end();
+    res.status(200).json(doc);
   } catch (e) {
     console.error(e);
     res.status(400).end();
@@ -100,21 +103,13 @@ export const updateOne = (model) => async (req, res) => {
 
     // check for the cause of the non existent updated document and return correct error status code
     if (!updatedDoc) {
-      const doc = await model
-        .findOne({ _id: req.params.id })
-        .select('-__v')
-        .lean()
-        .exec();
+      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
 
       if (!doc) {
         return res.status(404).end();
       }
 
-      if (!userHasAccess(doc, req.user._id)) {
-        return res.status(403).end();
-      }
-
-      return res.status(404).end();
+      return res.status(403).end();
     }
 
     return res.status(200).json(updatedDoc);
@@ -140,11 +135,7 @@ export const removeOne = (model) => async (req, res) => {
         return res.status(404).end();
       }
 
-      if (!userHasAccess(doc, req.user._id)) {
-        return res.status(403).end();
-      }
-
-      return res.status(404).end();
+      return res.status(403).end();
     }
 
     return res.status(200).json(removed);

@@ -40,12 +40,10 @@ const userSchema = new mongoose.Schema(
     settings: {
       theme: {
         type: String,
-        enum: ['DARK', 'LIGHT'],
         default: 'DARK',
       },
       notifications: {
         type: String,
-        enum: ['ALL', 'TODOS', 'INVITES', 'NONE'],
         default: 'ALL',
       },
       invites: {
