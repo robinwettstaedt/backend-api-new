@@ -118,49 +118,41 @@ export const acceptOne = (model) => async (req, res) => {
 
     const invite = await model.findOne({ _id: inviteID }).lean().exec();
 
-    if (!invite) return res.status(404).json({ message: 'no invite found' });
-
+    if (!invite) {
+      return res.status(404).json({ message: 'Invite not found' });
+    }
     // only the invite receiver can accept the invite
-    if (!invite.receiver.equals(req.user._id)) return res.status(403).end();
-
-    // changing the hasAccess field of the corresponding notebook #######################
-    const note = await Note.findOne({ _id: invite.note }).lean().exec();
-
-    if (!note) {
-      return res.status(404).end();
+    if (!invite.receiver.equals(req.user._id)) {
+      return res.status(403).end();
     }
 
-    const userToAdd = invite.receiver;
-    const oldAccessArray = note.hasAccess;
-
-    // check if the user is included in the old access array
-    const alreadyHasAccess = oldAccessArray.filter((oldUser) => {
-      return oldUser.toString() === userToAdd;
-    });
-
-    if (alreadyHasAccess.length > 0) {
-      return res.status(400).json({
-        message: 'User does already have access',
-      });
-    }
-
-    // append the new user to the old access array
-    oldAccessArray.push(userToAdd);
-
-    // renaming the array
-    const newAccessArray = oldAccessArray;
-
-    // update the notebook
+    // update the hasAccess array of the Note, if the invite receiver does not have access already
     const updatedNote = await Note.findOneAndUpdate(
-      { _id: invite.note },
-      { hasAccess: newAccessArray }
-    ).exec();
+      {
+        _id: invite.note,
+        hasAccess: { $not: { $all: [invite.receiver] } },
+      },
+      { $addToSet: { hasAccess: invite.receiver } },
+      {
+        new: true,
+      }
+    )
+      .lean()
+      .exec();
 
     if (!updatedNote) {
-      return res.status(404).end();
-    }
+      const note = await Note.findOne({ _id: invite.note }).lean().exec();
 
-    // ######################################################
+      if (!note) {
+        return res
+          .status(404)
+          .json({ message: 'Corresponding note not found' });
+      }
+
+      return res.status(400).json({
+        message: 'Invite receiver already has access to the note',
+      });
+    }
 
     // deleting the accepted invite
     const removed = await model
@@ -172,7 +164,10 @@ export const acceptOne = (model) => async (req, res) => {
       .exec();
 
     if (!removed) {
-      return res.status(404).end();
+      return res.status(404).json({
+        message:
+          'Invite not found and was therefore not removed but changes to the access of the resource were made',
+      });
     }
 
     res.status(200).json(removed);

@@ -121,7 +121,7 @@ export const acceptOne = (model) => async (req, res) => {
     const invite = await model.findOne({ _id: inviteID }).lean().exec();
 
     if (!invite) {
-      return res.status(404).json({ message: 'no invite found' });
+      return res.status(404).json({ message: 'Invite not found' });
     }
     // only the invite receiver can accept the invite
     if (!invite.receiver.equals(req.user._id)) {
@@ -148,11 +148,13 @@ export const acceptOne = (model) => async (req, res) => {
         .exec();
 
       if (!notebook) {
-        return res.status(404).end();
+        return res
+          .status(404)
+          .json({ message: 'Corresponding notebook not found' });
       }
 
       return res.status(400).json({
-        message: 'Invite receiver already has Access to the notebook',
+        message: 'Invite receiver already has access to the notebook',
       });
     }
 
@@ -174,7 +176,10 @@ export const acceptOne = (model) => async (req, res) => {
       .exec();
 
     if (!removed) {
-      return res.status(404).end();
+      return res.status(404).json({
+        message:
+          'Invite not found and was therefore not removed but changes to the access of the resource were made',
+      });
     }
 
     res.status(200).json(removed);
