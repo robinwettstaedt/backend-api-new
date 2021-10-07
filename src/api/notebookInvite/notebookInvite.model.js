@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 export const notebookInviteSchema = new mongoose.Schema(
   {
     notebook: {
-      type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'notebook' }],
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'notebook',
       required: true,
     },
     inviter: {
