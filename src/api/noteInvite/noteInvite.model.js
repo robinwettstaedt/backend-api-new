@@ -21,6 +21,6 @@ export const noteInviteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-noteInviteSchema.index({}, {});
+noteInviteSchema.index({ note: 1 });
 
 export const NoteInvite = mongoose.model('noteInvite', noteInviteSchema);

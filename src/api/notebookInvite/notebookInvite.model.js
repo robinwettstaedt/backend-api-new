@@ -21,7 +21,7 @@ export const notebookInviteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-notebookInviteSchema.index({}, {});
+notebookInviteSchema.index({ notebook: 1 });
 
 export const NotebookInvite = mongoose.model(
   'notebookInvite',

@@ -38,6 +38,7 @@ export const createOne = (model) => async (req, res) => {
       .lean()
       .exec();
 
+    // only the creator of a note can invite other users
     if (!note.createdBy.equals(newInvite.inviter)) {
       return res.status(403).end();
     }
@@ -47,6 +48,7 @@ export const createOne = (model) => async (req, res) => {
       return oldUser.toString() === newInvite.receiver;
     });
 
+    // filtered array will have one element inside if receiver already has access
     if (alreadyHasAccess.length > 0) {
       return res.status(400).json({
         message: 'User does already have access',
@@ -78,9 +80,11 @@ export const createOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    // removed == the removed document (if any)
     const removed = await model
-      .findOneAndRemove({ _id: req.params.invite_id })
+      .findOneAndRemove({
+        _id: req.params.invite_id,
+        $or: [{ inviter: req.user._id }, { receiver: req.user._id }],
+      })
       .select('-__v')
       .populate('inviter', '_id email firstName picture')
       .populate('receiver', '_id email firstName picture')
@@ -88,7 +92,17 @@ export const removeOne = (model) => async (req, res) => {
       .exec();
 
     if (!removed) {
-      return res.status(404).end();
+      const doc = await model
+        .findOne({ _id: req.params.invite_id })
+        .lean()
+        .exec();
+
+      if (!doc) {
+        return res.status(404).end();
+      }
+
+      // the document exists but the user issuing the request is neither the inviter, nor the receiver
+      return res.status(403).end();
     }
 
     res.status(200).json(removed);
