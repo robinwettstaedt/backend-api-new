@@ -15,6 +15,8 @@ export const googleAuthController = async (req, res) => {
 
     const { email, given_name, email_verified, picture } = ticket.getPayload();
 
+    const defaultUsername = email.split('@')[0];
+
     if (!email_verified)
       return res.status(400).send({ message: 'Google Mail is not verified.' });
 
@@ -22,6 +24,7 @@ export const googleAuthController = async (req, res) => {
 
     if (!existingUser) {
       const createduser = await User.create({
+        username: defaultUsername,
         email: email,
         firstName: given_name,
         picture: picture,
@@ -42,9 +45,6 @@ export const googleAuthController = async (req, res) => {
       const updatedUser = await User.findOneAndUpdate(
         { email: email },
         {
-          email: email,
-          firstName: given_name,
-          picture: picture,
           googleToken: token,
         },
         { upsert: true }

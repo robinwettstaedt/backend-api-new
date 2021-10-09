@@ -258,7 +258,7 @@ const crudControllers = (model) => ({
   createOne: createOne(model),
   updateOne: updateOne(model),
   removeOne: removeOne(model),
-  addToHasAccess: addToHasAccess(model),
+  //   addToHasAccess: addToHasAccess(model),
   removeFromHasAccess: removeFromHasAccess(model),
 });
 

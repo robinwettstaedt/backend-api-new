@@ -1,6 +1,9 @@
 import { User } from './user.model.js';
-import { NotebookInvite } from '../notebookInvite/notebookInvite.model.js';
+import { Note } from '../note/note.model.js';
 import { NoteInvite } from '../noteInvite/noteInvite.model.js';
+import { Notebook } from '../notebook/notebook.model.js';
+import { NotebookInvite } from '../notebookInvite/notebookInvite.model.js';
+import { Todo } from '../todo/todo.model.js';
 
 const NOTIFICATIONS_ENUM = ['ALL', 'TODOS', 'INVITES', 'NONE'];
 const THEME_ENUM = ['LIGHT', 'DARK'];
@@ -57,19 +60,38 @@ export const updateOne = (model) => async (req, res) => {
 
 export const removeOne = (model) => async (req, res) => {
   try {
-    const user = req.user;
+    const userToBeDeleted = req.user._id;
 
-    const removed = await model
-      .findOneAndRemove(user)
+    // necessary to wipe user out of all hasAccess fields?
+    await Todo.deleteMany({ createdBy: userToBeDeleted }).exec();
+
+    await NoteInvite.deleteMany({
+      $or: [{ inviter: userToBeDeleted }, { receiver: userToBeDeleted }],
+    }).exec();
+
+    await NotebookInvite.deleteMany({
+      $or: [{ inviter: userToBeDeleted }, { receiver: userToBeDeleted }],
+    }).exec();
+
+    await Note.deleteMany({ createdBy: userToBeDeleted }).exec();
+
+    await Notebook.deleteMany({ createdBy: userToBeDeleted }).exec();
+
+    // remove the user
+    const deletedUser = await model
+      .findOneAndRemove({ _id: userToBeDeleted })
       .select('-password -googleToken -tokenVersion -__v')
       .lean()
       .exec();
 
-    if (!removed) {
+    if (!deletedUser) {
       return res.status(404).end();
     }
 
-    res.status(200).json(removed);
+    res.status(200).json({
+      message:
+        'Successfully deleted all user information and terminated the account',
+    });
   } catch (e) {
     console.error(e);
     res.status(400).end();
