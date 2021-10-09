@@ -182,11 +182,11 @@ export const addToHasAccess = (model) => async (req, res) => {
       return res.status(404).end();
     }
 
-    // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
+    // iterate over the Note ids that are given on the Notebook and update their hasAccess field
     for (const noteID of updatedDoc.notes) {
       await Note.updateOne(
         { _id: noteID },
-        { hasAccess: updatedDoc.hasAccess }
+        { $addToSet: { hasAccess: userToAdd } }
       );
     }
 
@@ -199,9 +199,21 @@ export const addToHasAccess = (model) => async (req, res) => {
 
 export const removeFromHasAccess = (model) => async (req, res) => {
   try {
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
+    if (!userHasAccess(doc, req.body._id)) {
+      return res
+        .status(400)
+        .json({ message: 'User to be removed has no access.' });
+    }
+
     const updatedDoc = await model
       .findOneAndUpdate(
-        { _id: req.params.id, hasAccess: req.user._id },
+        { _id: req.params.id },
         { $pullAll: { hasAccess: [req.body._id] } },
         {
           new: true,
@@ -213,24 +225,14 @@ export const removeFromHasAccess = (model) => async (req, res) => {
       .exec();
 
     if (!updatedDoc) {
-      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
-
-      if (!doc) {
-        return res.status(404).end();
-      }
-
-      if (!userHasAccess(doc, req.user._id)) {
-        return res.status(403).end();
-      }
-
-      return res.status(404).end();
+      return res.status(404).json({ message: 'Notebook not found' });
     }
 
     // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
     for (const noteID of updatedDoc.notes) {
       await Note.updateOne(
         { _id: noteID },
-        { hasAccess: updatedDoc.hasAccess }
+        { $pullAll: { hasAccess: [req.body._id] } }
       );
     }
 

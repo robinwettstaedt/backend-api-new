@@ -215,30 +215,33 @@ export const addToHasAccess = (model) => async (req, res) => {
 
 export const removeFromHasAccess = (model) => async (req, res) => {
   try {
+    const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+
+    if (!doc.createdBy.equals(req.user._id)) {
+      return res.status(403).end();
+    }
+
+    if (!userHasAccess(doc, req.body._id)) {
+      return res
+        .status(400)
+        .json({ message: 'User to be removed has no access.' });
+    }
+
     const updatedDoc = await model
       .findOneAndUpdate(
-        { _id: req.params.id, hasAccess: req.user._id },
+        { _id: req.params.id },
         { $pullAll: { hasAccess: [req.body._id] } },
         {
           new: true,
         }
       )
       .select('-__v')
+      .populate('notes', '_id title emoji deleted deletedAt visible')
       .populate('hasAccess', '_id email firstName picture')
       .exec();
 
     if (!updatedDoc) {
-      const doc = await model.findOne({ _id: req.params.id }).lean().exec();
-
-      if (!doc) {
-        return res.status(404).end();
-      }
-
-      if (!userHasAccess(doc, req.user._id)) {
-        return res.status(403).end();
-      }
-
-      return res.status(404).end();
+      return res.status(404).json({ message: 'Notebook not found' });
     }
 
     res.status(200).json(updatedDoc);
