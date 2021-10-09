@@ -15,7 +15,7 @@ router
   .put(controllers.updateOne)
   .delete(controllers.removeOne);
 
-router.route('/:id/access/add').put(controllers.addToHasAccess);
+// router.route('/:id/access/add').put(controllers.addToHasAccess);
 router.route('/:id/access/remove').put(controllers.removeFromHasAccess);
 
 router
