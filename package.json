@@ -4,8 +4,16 @@
     "description": "backend of my new app",
     "main": "src/index.js",
     "type": "module",
+    "jest": {
+        "testEnvironment": "node",
+        "testMatch": [
+            "**/**/*.test.js"
+        ],
+        "forceExit": true,
+        "verbose": true
+    },
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "jest"
     },
     "repository": {
         "type": "git",
@@ -31,6 +39,16 @@
         "morgan": "^1.10.0"
     },
     "devDependencies": {
-        "nodemon": "^2.0.12"
+        "@babel/core": "^7.0.0",
+        "@babel/plugin-proposal-class-properties": "^7.0.0",
+        "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+        "@babel/preset-env": "^7.0.0",
+        "babel-core": "7.0.0-bridge.0",
+        "babel-eslint": "^8.2.1",
+        "babel-jest": "^27.3.1",
+        "jest": "^27.3.1",
+        "mongodb-memory-server": "^8.0.2",
+        "nodemon": "^2.0.12",
+        "supertest": "^6.1.6"
     }
 }

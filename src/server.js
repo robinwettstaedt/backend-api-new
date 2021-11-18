@@ -1,7 +1,8 @@
-import express from 'express';
-import cors from 'cors';
-import morgan from 'morgan';
-import cookieParser from 'cookie-parser';
+// import express from 'express';
+// import cors from 'cors';
+// import morgan from 'morgan';
+// import cookieParser from 'cookie-parser';
+import createServer from './utils/createServer.js';
 
 import { connect } from './utils/dbConnection.js';
 
@@ -21,20 +22,7 @@ import notebookRouter from './api/notebook/notebook.router.js';
 import userRouter from './api/user/user.router.js';
 import todoRouter from './api/todo/todo.router.js';
 
-export const app = express();
-
-app.disable('x-powered-by');
-
-app.use(
-  cors({
-    origin: ['http://localhost:3000'],
-    credentials: true,
-  })
-);
-app.use(cookieParser());
-app.use(express.json());
-// app.use(urlencoded({ extended: true }));
-app.use(morgan('dev'));
+const app = createServer();
 
 app.post('/signup', signup);
 app.post('/signin', signin);
