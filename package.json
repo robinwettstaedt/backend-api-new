@@ -1,19 +1,15 @@
 {
-    "name": "backend-api-new",
+    "name": "notedly-backend",
     "version": "1.0.0",
-    "description": "backend of my new app",
+    "description": "backend api of the notedly app",
     "main": "src/index.js",
-    "type": "module",
-    "jest": {
-        "testEnvironment": "node",
-        "testMatch": [
-            "**/**/*.test.js"
-        ],
-        "forceExit": true,
-        "verbose": true
-    },
     "scripts": {
-        "test": "jest"
+        "build": "npx babel src --out-dir build --extensions '.ts,.tsx,.js,.jsx'",
+        "dev": "nodemon --exec npm run restart",
+        "restart": "rimraf build && npm run build && npm start",
+        "start": "node build/index.js",
+        "test": "NODE_ENV=testing jest --forceExit --detectOpenHandles  --silent",
+        "deploy": "NODE_ENV=production node build/index.js"
     },
     "repository": {
         "type": "git",
@@ -39,16 +35,20 @@
         "morgan": "^1.10.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.0.0",
-        "@babel/plugin-proposal-class-properties": "^7.0.0",
-        "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
-        "@babel/preset-env": "^7.0.0",
-        "babel-core": "7.0.0-bridge.0",
-        "babel-eslint": "^8.2.1",
-        "babel-jest": "^27.3.1",
-        "jest": "^27.3.1",
-        "mongodb-memory-server": "^8.0.2",
-        "nodemon": "^2.0.12",
-        "supertest": "^6.1.6"
+        "@babel/cli": "^7.16.0",
+        "@babel/core": "^7.16.0",
+        "@babel/preset-env": "^7.16.4",
+        "eslint": "^8.3.0",
+        "eslint-config-airbnb": "^19.0.1",
+        "eslint-config-node": "^2.0.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-import": "^2.25.3",
+        "eslint-plugin-jsx-a11y": "^6.5.1",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-prettier": "^4.0.0",
+        "eslint-plugin-react": "^7.27.1",
+        "eslint-plugin-react-hooks": "^4.3.0",
+        "prettier": "^2.5.0",
+        "rimraf": "^3.0.2"
     }
 }
