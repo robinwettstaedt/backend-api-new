@@ -1,36 +1,21 @@
-// import express from 'express';
-// import cors from 'cors';
-// import morgan from 'morgan';
-// import cookieParser from 'cookie-parser';
-import createServer from './utils/createServer.js';
+import createServer from './utils/createServer';
 
-import { connect } from './utils/dbConnection.js';
+import connectToMongoDB from './utils/createMongoConnection';
 
-import {
-    signup,
-    signin,
-    signout,
-    refreshAccessToken,
-    revokeRefreshToken,
-    protect,
-} from './utils/auth.js';
+import { protect } from './api/authentication/authentication.controllers';
 
-import { googleAuthController } from './utils/googleauth.js';
+import authRouter from './api/authentication/authentication.router';
 
-import noteRouter from './api/note/note.router.js';
-import notebookRouter from './api/notebook/notebook.router.js';
-import userRouter from './api/user/user.router.js';
-import todoRouter from './api/todo/todo.router.js';
+import noteRouter from './api/note/note.router';
+import notebookRouter from './api/notebook/notebook.router';
+import userRouter from './api/user/user.router';
+import todoRouter from './api/todo/todo.router';
 
 const port = process.env.PORT;
 
 const app = createServer();
 
-app.post('/signup', signup);
-app.post('/signin', signin);
-app.post('/refresh_token', refreshAccessToken);
-app.post('/signout', signout);
-app.post('/signinwithgoogle', googleAuthController);
+app.use('/auth', authRouter);
 
 app.use('/api', protect);
 
@@ -44,9 +29,9 @@ app.use('/api/v1/todo', todoRouter);
 
 app.use('*', (req, res) => res.status(404).json({ error: 'invalid route' }));
 
-export const start = async () => {
+const start = async () => {
     try {
-        await connect();
+        await connectToMongoDB();
         app.listen(port, () => {
             console.log(`REST API on http://localhost:${port}`);
         });
@@ -54,3 +39,5 @@ export const start = async () => {
         console.error(e);
     }
 };
+
+export default start;

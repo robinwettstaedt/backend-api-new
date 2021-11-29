@@ -6,10 +6,11 @@
     },
     "extends": [
         "airbnb",
-        "prettier",
+        "prettier"
         //"plugin:node/recommended",
-        "plugin:@typescript-eslint/recommended"
     ],
-    "plugins": ["@typescript-eslint", "prettier"],
-    "rules": {}
+    "plugins": ["prettier"],
+    "rules": {
+        "no-underscore-dangle": "off"
+    }
 }

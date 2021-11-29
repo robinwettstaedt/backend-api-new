@@ -1,11 +1,17 @@
 import { OAuth2Client } from 'google-auth-library';
-import { User } from '../api/user/user.model.js';
-import { createRefreshToken, createAccessToken } from './auth.js';
+import { User } from '../user/user.model';
+import {
+    createRefreshToken,
+    createAccessToken,
+} from './authentication.controllers';
+
+// attributes from google auth are snake case, that's why I disabled the eslint rule
+/* eslint camelcase: 0 */
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // change so that the user object from the db is used to create jwts and send them back (accessToken) or put them in cookie (refreshToken)
-export const googleAuthController = async (req, res) => {
+const googleAuthController = async (req, res) => {
     try {
         const { token } = req.body;
         const ticket = await client.verifyIdToken({
@@ -23,14 +29,16 @@ export const googleAuthController = async (req, res) => {
                 .status(400)
                 .send({ message: 'Google Mail is not verified.' });
 
-        const existingUser = await User.findOne({ email: email }).lean().exec();
+        const existingUser = await User.findOne({ email }).lean().exec();
+
+        console.log(picture);
 
         if (!existingUser) {
             const createduser = await User.create({
                 username: defaultUsername,
-                email: email,
-                firstName: given_name,
-                picture: picture,
+                email,
+                given_name,
+                picture,
                 googleToken: token,
             });
 
@@ -43,29 +51,31 @@ export const googleAuthController = async (req, res) => {
 
             const accessToken = createAccessToken(createduser);
 
-            return res.status(201).send({ accessToken: accessToken });
-        } else {
-            const updatedUser = await User.findOneAndUpdate(
-                { email: email },
-                {
-                    googleToken: token,
-                },
-                { upsert: true }
-            ).exec();
-
-            const refreshToken = createRefreshToken(updatedUser);
-
-            res.cookie('jid', refreshToken, {
-                httpOnly: true,
-                path: '/refresh_token',
-            });
-
-            const accessToken = createAccessToken(updatedUser);
-
-            return res.status(201).send({ accessToken: accessToken });
+            return res.status(201).send({ accessToken });
         }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { email },
+            {
+                googleToken: token,
+            },
+            { upsert: true }
+        ).exec();
+
+        const refreshToken = createRefreshToken(updatedUser);
+
+        res.cookie('jid', refreshToken, {
+            httpOnly: true,
+            path: '/refresh_token',
+        });
+
+        const accessToken = createAccessToken(updatedUser);
+
+        return res.status(201).send({ accessToken });
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
+
+export default googleAuthController;
