@@ -1,9 +1,9 @@
-import { Todo } from './todo.model.js';
+import { Todo } from './todo.model';
 
 const PRIORITY_ENUM = ['HIGHEST', 'HIGH', 'MEDIUM', 'LOW', 'LOWEST'];
 const REPEATING_ENUM = ['MAYBE', 'NOT', 'NEEDED'];
 
-export const getOne = (model) => async (req, res) => {
+const getOne = (model) => async (req, res) => {
     try {
         const doc = await model
             .findOne({ _id: req.params.id })
@@ -19,14 +19,14 @@ export const getOne = (model) => async (req, res) => {
             return res.status(403).end();
         }
 
-        res.status(200).json(doc);
+        return res.status(200).json(doc);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
-export const getMany = (model) => async (req, res) => {
+const getMany = (model) => async (req, res) => {
     try {
         const docs = await model
             .find({ createdBy: req.user._id })
@@ -38,14 +38,14 @@ export const getMany = (model) => async (req, res) => {
             return res.status(404).end();
         }
 
-        res.status(200).json(docs);
+        return res.status(200).json(docs);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
-export const createOne = (model) => async (req, res) => {
+const createOne = (model) => async (req, res) => {
     try {
         const todo = req.body;
 
@@ -88,14 +88,14 @@ export const createOne = (model) => async (req, res) => {
             return res.status(404).end();
         }
 
-        res.status(201).json(doc);
+        return res.status(201).json(doc);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
-export const updateOne = (model) => async (req, res) => {
+const updateOne = (model) => async (req, res) => {
     try {
         const todoUpdates = req.body;
 
@@ -151,14 +151,14 @@ export const updateOne = (model) => async (req, res) => {
             return res.status(404).end();
         }
 
-        res.status(200).json(updatedDoc);
+        return res.status(200).json(updatedDoc);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
-export const removeOne = (model) => async (req, res) => {
+const removeOne = (model) => async (req, res) => {
     try {
         const removedDoc = await model
             .findOneAndRemove({ _id: req.params.id, createdBy: req.user._id })
@@ -182,16 +182,16 @@ export const removeOne = (model) => async (req, res) => {
             return res.status(404).end();
         }
 
-        res.status(200).json(removedDoc);
+        return res.status(200).json(removedDoc);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
 // REMOVES ALL TODOS with a dueDate older than 48 hrs
 // used locally on the server at timed intervals to clear up db space
-export const removeMany = (model) => async (req, res) => {
+const removeMany = (model) => async (req, res) => {
     try {
         const docs = await model
             .deleteMany({
@@ -206,10 +206,10 @@ export const removeMany = (model) => async (req, res) => {
             return res.status(404).end();
         }
 
-        res.status(200).json(docs);
+        return res.status(200).json(docs);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 

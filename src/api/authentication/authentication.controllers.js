@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../user/user.model';
+import User from '../user/user.model';
 
 export const createAccessToken = (user) =>
     jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {

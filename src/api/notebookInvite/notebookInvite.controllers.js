@@ -1,8 +1,8 @@
-import { Note } from '../note/note.model.js';
-import { Notebook } from '../notebook/notebook.model.js';
-import { NotebookInvite } from './notebookInvite.model.js';
+import { Note } from '../note/note.model';
+import { Notebook } from '../notebook/notebook.model';
+import { NotebookInvite } from './notebookInvite.model';
 
-export const getMany = (model) => async (req, res) => {
+const getMany = (model) => async (req, res) => {
     try {
         const docs = await model
             .find({ notebook: req.params.id })
@@ -14,14 +14,14 @@ export const getMany = (model) => async (req, res) => {
 
         if (!docs) return res.status(404).end();
 
-        res.status(200).json(docs);
+        return res.status(200).json(docs);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
-export const createOne = (model) => async (req, res) => {
+const createOne = (model) => async (req, res) => {
     try {
         const newInvite = {
             notebook: req.params.id,
@@ -45,9 +45,9 @@ export const createOne = (model) => async (req, res) => {
         }
 
         // check if the user is included in the old access array
-        const alreadyHasAccess = notebook.hasAccess.filter((oldUser) => {
-            return oldUser.toString() === newInvite.receiver;
-        });
+        const alreadyHasAccess = notebook.hasAccess.filter(
+            (oldUser) => oldUser.toString() === newInvite.receiver
+        );
 
         // filtered array will have one element inside if receiver already has access
         if (alreadyHasAccess.length > 0) {
@@ -72,15 +72,15 @@ export const createOne = (model) => async (req, res) => {
             .lean()
             .exec();
 
-        res.status(201).json(doc);
+        return res.status(201).json(doc);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
 // called when an invite is declined or cancelled by the inviter
-export const removeOne = (model) => async (req, res) => {
+const removeOne = (model) => async (req, res) => {
     try {
         const removed = await model
             .findOneAndRemove({
@@ -107,14 +107,14 @@ export const removeOne = (model) => async (req, res) => {
             return res.status(403).end();
         }
 
-        res.status(200).json(removed);
+        return res.status(200).json(removed);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
-export const acceptOne = (model) => async (req, res) => {
+const acceptOne = (model) => async (req, res) => {
     try {
         const inviteID = req.params.invite_id;
 
@@ -159,7 +159,9 @@ export const acceptOne = (model) => async (req, res) => {
         }
 
         // iterate over the Note ids that are given on the Notebook and update their hasAccess field
+        // eslint-disable-next-line no-restricted-syntax
         for (const noteID of updatedNotebook.notes) {
+            // eslint-disable-next-line no-await-in-loop
             await Note.updateOne(
                 { _id: noteID },
                 { $addToSet: { hasAccess: invite.receiver } }
@@ -182,10 +184,10 @@ export const acceptOne = (model) => async (req, res) => {
             });
         }
 
-        res.status(200).json(removed);
+        return res.status(200).json(removed);
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 

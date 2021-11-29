@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
-import { User } from '../user/user.model';
+import User from '../user/user.model';
 import {
     createRefreshToken,
     createAccessToken,
