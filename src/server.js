@@ -7,12 +7,12 @@ import createServer from './utils/createServer.js';
 import { connect } from './utils/dbConnection.js';
 
 import {
-  signup,
-  signin,
-  signout,
-  refreshAccessToken,
-  revokeRefreshToken,
-  protect,
+    signup,
+    signin,
+    signout,
+    refreshAccessToken,
+    revokeRefreshToken,
+    protect,
 } from './utils/auth.js';
 
 import { googleAuthController } from './utils/googleauth.js';
@@ -21,6 +21,8 @@ import noteRouter from './api/note/note.router.js';
 import notebookRouter from './api/notebook/notebook.router.js';
 import userRouter from './api/user/user.router.js';
 import todoRouter from './api/todo/todo.router.js';
+
+const port = process.env.PORT;
 
 const app = createServer();
 
@@ -43,12 +45,12 @@ app.use('/api/v1/todo', todoRouter);
 app.use('*', (req, res) => res.status(404).json({ error: 'invalid route' }));
 
 export const start = async () => {
-  try {
-    await connect();
-    app.listen(process.env.PORT, () => {
-      console.log(`REST API on http://localhost:${process.env.PORT}`);
-    });
-  } catch (e) {
-    console.error(e);
-  }
+    try {
+        await connect();
+        app.listen(port, () => {
+            console.log(`REST API on http://localhost:${port}`);
+        });
+    } catch (e) {
+        console.error(e);
+    }
 };
