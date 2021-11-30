@@ -31,7 +31,8 @@ app.use('*', (req, res) => res.status(404).json({ error: 'invalid route' }));
 
 const start = async () => {
     try {
-        await connectToMongoDB();
+        connectToMongoDB();
+
         app.listen(port, () => {
             console.log(`REST API on http://localhost:${port}`);
         });
