@@ -1,22 +1,20 @@
-import { User } from '../api/user/user.model.js';
 import jwt from 'jsonwebtoken';
+import User from '../user/user.model';
 
-export const createAccessToken = (user) => {
-    return jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
+export const createAccessToken = (user) =>
+    jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
         // expiresIn: '15min',
         expiresIn: '1000d',
     });
-};
 
-export const createRefreshToken = (user) => {
-    return jwt.sign(
+export const createRefreshToken = (user) =>
+    jwt.sign(
         { id: user.id, tokenVersion: user.tokenVersion },
         process.env.REFRESH_TOKEN_SECRET,
         {
             expiresIn: '30d',
         }
     );
-};
 
 export const signin = async (req, res) => {
     if (!req.body.email || !req.body.password) {
@@ -49,12 +47,10 @@ export const signin = async (req, res) => {
 
         const accessToken = createAccessToken(user);
 
-        return res
-            .status(201)
-            .send({ accessToken: accessToken, user_email: user.email });
+        return res.status(200).send({ accessToken, email: user.email });
     } catch (e) {
         console.error(e);
-        res.status(500).end();
+        return res.status(500).end();
     }
 };
 
@@ -75,9 +71,8 @@ export const signup = async (req, res) => {
 
         const accessToken = createAccessToken(user);
 
-        return res.status(201).send({ accessToken: accessToken });
+        return res.status(201).send({ accessToken });
     } catch (e) {
-        //console.error(e);
         return res.status(500).end();
     }
 };
@@ -121,7 +116,7 @@ export const refreshAccessToken = async (req, res) => {
 
 // invalidates the users refreshToken, so the user will have to log in again on every device
 // e.g. when user forgets password
-export const revokeRefreshToken = async (user) => {
+export const revokeRefreshToken = async (req, res, user) => {
     try {
         const updatedDoc = await User.findOneAndUpdate(
             { _id: user.id },
@@ -132,16 +127,17 @@ export const revokeRefreshToken = async (user) => {
             return res.status(400).end();
         }
 
-        res.status(200).send();
+        return res.status(200).send();
     } catch (e) {
         console.error(e);
-        res.status(400).end();
+        return res.status(400).end();
     }
 };
 
 // middleware securing all routes
 // checking each incoming request to /api/... for the Authorization Header
 // verifies the JWT inside
+// eslint-disable-next-line consistent-return
 export const protect = async (req, res, next) => {
     const bearer = req.headers.authorization;
 
