@@ -18,8 +18,8 @@ describe('API Routes Protection Testing', () => {
         disconnectFromTestMongo();
     });
 
-    describe('api auth', () => {
-        test('api should be locked down', async () => {
+    describe('API Route Protection', () => {
+        test('API should be locked down', async () => {
             let response = await request(app).get('/api/note');
             expect(response.statusCode).toBe(401);
 

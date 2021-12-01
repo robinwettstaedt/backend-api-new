@@ -37,7 +37,7 @@ describe('Test Authentication', () => {
         //             firstName: 'Tester',
         //             username: 'tester',
         //         });
-        //         expect(response.body.accessToken).not.toBe('');
+        //         expect(response.body.accessToken).toBeTruthy();
         //     });
         // });
 
