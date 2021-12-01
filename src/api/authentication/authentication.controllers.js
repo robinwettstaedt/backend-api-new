@@ -47,7 +47,7 @@ export const signin = async (req, res) => {
 
         const accessToken = createAccessToken(user);
 
-        return res.status(201).send({ accessToken, user_email: user.email });
+        return res.status(200).send({ accessToken, email: user.email });
     } catch (e) {
         console.error(e);
         return res.status(500).end();
