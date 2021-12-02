@@ -8,9 +8,14 @@
         "dev": "nodemon --exec npm run restart",
         "restart": "rimraf build && npm run build && npm start",
         "start": "node build/index.js",
-        "test": "NODE_ENV=testing jest -i --forceExit --detectOpenHandles --silent",
+        "test": "NODE_ENV=testing jest -i --forceExit --detectOpenHandles --watchAll",
         "deploy": "NODE_ENV=production node build/index.js",
         "lint": "eslint 'src/**/*.js'"
+    },
+    "jest": {
+        "testPathIgnorePatterns": [
+            "src/api"
+        ]
     },
     "repository": {
         "type": "git",

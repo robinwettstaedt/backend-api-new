@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 export const connectToTestMongo = async () => {
-    mongoose.connect('mongodb://localhost:27017', {
+    mongoose.connect('mongodb://localhost:27017/testing', {
         maxPoolSize: 50,
         connectTimeoutMS: 5000,
         useNewUrlParser: true,
@@ -10,6 +10,12 @@ export const connectToTestMongo = async () => {
 
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error: '));
+};
+
+export const disconnectAndDropFromTestMongo = async () => {
+    await mongoose.connection.db.dropDatabase();
+    await mongoose.disconnect();
+    await mongoose.connection.close();
 };
 
 export const disconnectFromTestMongo = async () => {
