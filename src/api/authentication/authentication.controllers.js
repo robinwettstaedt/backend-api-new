@@ -82,7 +82,7 @@ export const signout = (req, res) => {
     res.cookie('jid', '').status(200).end();
 };
 
-// generates and return a new accessToken to the user by validating their refreshToken
+// generates and returns a new accessToken to the user by validating their refreshToken
 // is requested by the frontend via a timeout function, so that the access token is silently refreshed before it runs out
 export const refreshAccessToken = async (req, res) => {
     const token = req.cookies.jid;

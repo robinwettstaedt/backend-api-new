@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import authenticationTestSuite from '../api/authentication/test/authentication.test';
+import authenticationTestSuite from '../api/authentication/test/test.authentication';
 import {
     connectToTestMongo,
     disconnectAndDropFromTestMongo,
