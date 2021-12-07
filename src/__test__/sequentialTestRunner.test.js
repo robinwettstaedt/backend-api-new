@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import authenticationTestSuite from '../api/authentication/test/test.authentication';
+import userTestSuite from '../api/user/test/test.user';
 import {
     connectToTestMongo,
     disconnectAndDropFromTestMongo,
@@ -13,5 +14,8 @@ describe('run all tests sequentially', () => {
     afterAll(async () => {
         disconnectAndDropFromTestMongo();
     });
+
     authenticationTestSuite();
+
+    userTestSuite();
 });

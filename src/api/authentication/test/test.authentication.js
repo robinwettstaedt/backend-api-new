@@ -9,14 +9,15 @@ import {
     createRefreshToken,
 } from '../authentication.controllers';
 import User from '../../user/user.model';
+import {
+    userWithAccess,
+    secondUserWithAccess,
+    userWithNoAccess,
+} from '../../../__test__/utils/testVariables';
 
 dotenv.config();
 
 let COOKIE;
-const userEmail = 'testuser@testuser.com';
-const userPassword = 'thisisthetestpw';
-const userFirstName = 'Tester';
-const userName = 'Tester';
 
 const authenticationTestSuite = () => {
     describe('Test Authentication', () => {
@@ -34,15 +35,15 @@ const authenticationTestSuite = () => {
         });
 
         describe('POST /signup', () => {
-            describe('registers a new user', () => {
+            describe('registers a new user (userWithAccess)', () => {
                 test('respond with status code 201, accessToken not empty, cookie was set', async () => {
                     const response = await request(app)
                         .post('/auth/signup')
                         .send({
-                            email: userEmail,
-                            password: userPassword,
-                            firstName: userFirstName,
-                            username: userName,
+                            email: userWithAccess.email,
+                            password: userWithAccess.password,
+                            firstName: userWithAccess.firstName,
+                            username: userWithAccess.username,
                         });
                     expect(response.statusCode).toBe(201);
                     expect(response.body.accessToken).toBeTruthy();
@@ -55,13 +56,45 @@ const authenticationTestSuite = () => {
                     const response = await request(app)
                         .post('/auth/signup')
                         .send({
-                            email: userEmail,
-                            password: userPassword,
-                            firstName: userFirstName,
-                            username: userName,
+                            email: userWithAccess.email,
+                            password: userWithAccess.password,
+                            firstName: userWithAccess.firstName,
+                            username: userWithAccess.username,
                         });
                     expect(response.statusCode).toBe(500);
                     expect(response.header['set-cookie']).toBeUndefined();
+                });
+            });
+
+            describe('registers a second new user (secondUserWithAccess)', () => {
+                test('respond with status code 201, accessToken not empty, cookie was set', async () => {
+                    const response = await request(app)
+                        .post('/auth/signup')
+                        .send({
+                            email: secondUserWithAccess.email,
+                            password: secondUserWithAccess.password,
+                            firstName: secondUserWithAccess.firstName,
+                            username: secondUserWithAccess.username,
+                        });
+                    expect(response.statusCode).toBe(201);
+                    expect(response.body.accessToken).toBeTruthy();
+                    expect(response.header['set-cookie'][0]).toMatch(/jid=ey/);
+                });
+            });
+
+            describe('registers a second new user (userWithNoAccess)', () => {
+                test('respond with status code 201, accessToken not empty, cookie was set', async () => {
+                    const response = await request(app)
+                        .post('/auth/signup')
+                        .send({
+                            email: userWithNoAccess.email,
+                            password: userWithNoAccess.password,
+                            firstName: userWithNoAccess.firstName,
+                            username: userWithNoAccess.username,
+                        });
+                    expect(response.statusCode).toBe(201);
+                    expect(response.body.accessToken).toBeTruthy();
+                    expect(response.header['set-cookie'][0]).toMatch(/jid=ey/);
                 });
             });
         });
@@ -69,14 +102,14 @@ const authenticationTestSuite = () => {
         describe('testing the jwt creation functions', () => {
             test('should return a jwt accessToken', async () => {
                 const user = await User.findOne({
-                    email: userEmail,
+                    email: userWithAccess.email,
                 }).exec();
                 expect(createAccessToken(user)).toMatch(/ey/);
             });
 
             test('should return a jwt refreshToken', async () => {
                 const user = await User.findOne({
-                    email: userEmail,
+                    email: userWithAccess.email,
                 }).exec();
                 expect(createRefreshToken(user)).toMatch(/ey/);
             });
@@ -88,8 +121,8 @@ const authenticationTestSuite = () => {
                     const response = await request(app)
                         .post('/auth/signin')
                         .send({
-                            email: userEmail,
-                            password: userPassword,
+                            email: userWithAccess.email,
+                            password: userWithAccess.password,
                         });
                     expect(response.statusCode).toBe(200);
                     expect(response.body.accessToken).not.toBe('');
@@ -109,7 +142,7 @@ const authenticationTestSuite = () => {
                         .post('/auth/signin')
                         .send({
                             email: 'incorrect@email.com',
-                            password: userPassword,
+                            password: userWithAccess.password,
                         });
                     expect(response.statusCode).toBe(401);
                 });
@@ -118,7 +151,7 @@ const authenticationTestSuite = () => {
                     const response = await request(app)
                         .post('/auth/signin')
                         .send({
-                            email: userEmail,
+                            email: userWithAccess.email,
                             password: 'thisisthewrongpw',
                         });
                     expect(response.statusCode).toBe(401);
@@ -127,14 +160,14 @@ const authenticationTestSuite = () => {
 
             test('missing email, responds with status code 400', async () => {
                 const response = await request(app).post('/auth/signin').send({
-                    password: userPassword,
+                    password: userWithAccess.password,
                 });
                 expect(response.statusCode).toBe(400);
             });
 
             test('missing pw, responds with status code 400', async () => {
                 const response = await request(app).post('/auth/signin').send({
-                    email: userEmail,
+                    email: userWithAccess.email,
                 });
                 expect(response.statusCode).toBe(400);
             });
