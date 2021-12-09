@@ -2,7 +2,6 @@
 /* eslint-disable no-undef */
 
 import request from 'supertest';
-import dotenv from 'dotenv';
 import app from '../../../app';
 import {
     createAccessToken,
@@ -14,8 +13,6 @@ import {
     secondUserWithAccess,
     userWithNoAccess,
 } from '../../../__test__/utils/testVariables';
-
-dotenv.config();
 
 let COOKIE;
 
@@ -82,7 +79,7 @@ const authenticationTestSuite = () => {
                 });
             });
 
-            describe('registers a second new user (userWithNoAccess)', () => {
+            describe('registers a third new user (userWithNoAccess)', () => {
                 test('respond with status code 201, accessToken not empty, cookie was set', async () => {
                     const response = await request(app)
                         .post('/auth/signup')

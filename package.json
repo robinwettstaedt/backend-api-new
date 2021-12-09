@@ -14,7 +14,8 @@
     },
     "jest": {
         "testPathIgnorePatterns": [
-            "src/api"
+            "src/api",
+            "build"
         ]
     },
     "repository": {

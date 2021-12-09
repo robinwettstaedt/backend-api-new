@@ -24,22 +24,50 @@ const updateOne = (model) => async (req, res) => {
         const updateData = req.body;
 
         // check if the <theme> value is legitimate
-        if (updateData.settings.theme) {
-            if (!THEME_ENUM.includes(updateData.settings.theme)) {
-                return res.status(400).json({
-                    message: `<theme> value has to be one of the following: ${THEME_ENUM}`,
-                });
+        if (updateData.settings) {
+            if (updateData.settings.notifications) {
+                if (!THEME_ENUM.includes(updateData.settings.theme)) {
+                    return res.status(400).json({
+                        message: `<theme> value has to be one of the following: ${THEME_ENUM}`,
+                    });
+                }
             }
         }
 
         // check if the <notifications> value is legitimate
-        if (updateData.settings.notifications) {
-            if (
-                !NOTIFICATIONS_ENUM.includes(updateData.settings.notifications)
-            ) {
-                return res.status(400).json({
-                    message: `<notifications> value has to be one of the following: ${NOTIFICATIONS_ENUM}`,
-                });
+        if (updateData.settings) {
+            if (updateData.settings.theme) {
+                if (
+                    !NOTIFICATIONS_ENUM.includes(
+                        updateData.settings.notifications
+                    )
+                ) {
+                    return res.status(400).json({
+                        message: `<notifications> value has to be one of the following: ${NOTIFICATIONS_ENUM}`,
+                    });
+                }
+            }
+        }
+
+        if (updateData.email) {
+            return res
+                .status(400)
+                .json({ message: 'email can not be changed' });
+        }
+
+        if (updateData.googleToken) {
+            const userToBeUpdated = await model.findOne(user).lean().exec();
+
+            if (userToBeUpdated.password) {
+                return res.status(400).end();
+            }
+        }
+
+        if (updateData.password) {
+            const userToBeUpdated = await model.findOne(user).lean().exec();
+
+            if (userToBeUpdated.googleToken) {
+                return res.status(400).end();
             }
         }
 

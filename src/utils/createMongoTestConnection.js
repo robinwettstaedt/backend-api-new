@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 export const connectToTestMongo = async () => {
-    mongoose.connect('mongodb://localhost:27017/testing', {
+    mongoose.connect(process.env.LOCAL_MONGO_URI, {
         maxPoolSize: 50,
         connectTimeoutMS: 5000,
         useNewUrlParser: true,
