@@ -12,7 +12,7 @@ import {
     userWithAccess,
     secondUserWithAccess,
     userWithNoAccess,
-} from '../../../__test__/utils/testVariables';
+} from '../../../__test__/utils/variables/userVariables';
 
 let COOKIE;
 

@@ -12,6 +12,9 @@ const userHasAccess = (doc, userID) => {
     return false;
 };
 
+const checkValidColor = (colorToBeChecked) =>
+    colorToBeChecked.match(/^((0x){0,1}|#{0,1})([0-9A-F]{8}|[0-9A-F]{6})$/gi);
+
 const getOne = (model) => async (req, res) => {
     try {
         const doc = await model
@@ -46,6 +49,12 @@ const createOne = (model) => async (req, res) => {
     try {
         const notebook = req.body;
 
+        if (!checkValidColor(notebook.color)) {
+            return res
+                .status(400)
+                .send({ message: 'given color is not a hex string' });
+        }
+
         notebook.hasAccess = [req.user._id];
         notebook.createdBy = req.user._id;
 
@@ -73,6 +82,14 @@ const createOne = (model) => async (req, res) => {
 const updateOne = (model) => async (req, res) => {
     try {
         const notebookUpdates = req.body;
+
+        if (notebookUpdates.color) {
+            if (!checkValidColor(notebookUpdates.color)) {
+                return res
+                    .status(400)
+                    .send({ message: 'given color is not a hex string' });
+            }
+        }
 
         // check for deletion status
         if (notebookUpdates.deleted === true) {

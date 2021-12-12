@@ -157,10 +157,6 @@ export const protect = async (req, res, next) => {
 
     const user = await User.findById(payload.id)
         .select('-password -googleToken -tokenVersion -__v')
-        .populate(
-            'notebooks',
-            '_id title color deleted deletedAt visible notes'
-        )
         .lean()
         .exec();
 

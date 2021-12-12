@@ -54,9 +54,6 @@ const userSchema = new mongoose.Schema(
                 default: true,
             },
         },
-        notebooks: {
-            type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'notebook' }],
-        },
     },
     { timestamps: true }
 );

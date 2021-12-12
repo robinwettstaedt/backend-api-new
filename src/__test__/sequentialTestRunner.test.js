@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 import authenticationTestSuite from '../api/authentication/test/test.authentication';
 import userTestSuite from '../api/user/test/test.user';
+import notebookTestSuite from '../api/notebook/test/test.notebook';
+import noteTestSuite from '../api/note/test/test.note';
 import {
     connectToTestMongo,
     disconnectAndDropFromTestMongo,
@@ -18,4 +20,8 @@ describe('run all tests sequentially', () => {
     authenticationTestSuite();
 
     userTestSuite();
+
+    notebookTestSuite();
+
+    //noteTestSuite();
 });
