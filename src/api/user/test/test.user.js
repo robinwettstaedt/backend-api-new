@@ -103,6 +103,24 @@ const userTestSuite = () => {
 
                 expect(response.statusCode).toBe(400);
             });
+
+            describe('sending arbitrary json as update data is filtered by mongoose', () => {
+                test('responds with status code 200, username change is reversed, arbitrary data does not exist on response body', async () => {
+                    const authedReq = await authorizedRequest(userWithAccess);
+
+                    // users with password have signed in with email, not with google auth and can therefore not change their googleToken
+                    const response = await authedReq.put('/api/v1/user').send({
+                        hello: 'data',
+                        username: userWithAccess.username,
+                    });
+
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body.data.hello).toBeUndefined();
+                    expect(response.body.data.username).toEqual(
+                        userWithAccess.username
+                    );
+                });
+            });
         });
     });
 };
