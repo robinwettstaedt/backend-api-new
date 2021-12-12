@@ -4,10 +4,7 @@ import notebookInviteControllers from '../notebookInvite/notebookInvite.controll
 
 const router = express.Router();
 
-router
-    .route('/')
-    // .get(controllers.getMany)
-    .post(controllers.createOne);
+router.route('/').post(controllers.createOne).get(controllers.getMany);
 
 router
     .route('/:id')

@@ -23,5 +23,5 @@ describe('run all tests sequentially', () => {
 
     notebookTestSuite();
 
-    //noteTestSuite();
+    noteTestSuite();
 });

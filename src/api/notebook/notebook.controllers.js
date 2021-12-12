@@ -12,7 +12,7 @@ const userHasAccess = (doc, userID) => {
     return false;
 };
 
-const checkValidColor = (colorToBeChecked) =>
+const isValidHex = (colorToBeChecked) =>
     colorToBeChecked.match(/^((0x){0,1}|#{0,1})([0-9A-F]{8}|[0-9A-F]{6})$/gi);
 
 const getOne = (model) => async (req, res) => {
@@ -45,11 +45,32 @@ const getOne = (model) => async (req, res) => {
     }
 };
 
+const getMany = (model) => async (req, res) => {
+    try {
+        const docs = await model
+            .find({ hasAccess: req.user._id })
+            .select('-__v')
+            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate('hasAccess', '_id email firstName picture')
+            .lean()
+            .exec();
+
+        if (!docs) {
+            return res.status(404).end();
+        }
+
+        return res.status(200).json(docs);
+    } catch (e) {
+        console.error(e);
+        return res.status(400).end();
+    }
+};
+
 const createOne = (model) => async (req, res) => {
     try {
         const notebook = req.body;
 
-        if (!checkValidColor(notebook.color)) {
+        if (!isValidHex(notebook.color)) {
             return res
                 .status(400)
                 .send({ message: 'given color is not a hex string' });
@@ -84,7 +105,7 @@ const updateOne = (model) => async (req, res) => {
         const notebookUpdates = req.body;
 
         if (notebookUpdates.color) {
-            if (!checkValidColor(notebookUpdates.color)) {
+            if (!isValidHex(notebookUpdates.color)) {
                 return res
                     .status(400)
                     .send({ message: 'given color is not a hex string' });
@@ -271,6 +292,7 @@ const removeFromHasAccess = (model) => async (req, res) => {
 
 const crudControllers = (model) => ({
     getOne: getOne(model),
+    getMany: getMany(model),
     createOne: createOne(model),
     updateOne: updateOne(model),
     removeOne: removeOne(model),
