@@ -89,6 +89,60 @@ const noteTestSuite = () => {
             });
         });
 
+        describe('PUT /api/v1/note/:id', () => {
+            test('updates the note, also marks as deleted', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/note/${firstNote._id}`)
+                    .send({
+                        title: secondNote.title,
+                        content: secondNote.content,
+                        deleted: true,
+                    });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body.title).toEqual(secondNote.title);
+                expect(response.body.color).toEqual(secondNote.color);
+                expect(response.body._id).toEqual(firstNote._id);
+                expect(response.body.deleted).toBe(true);
+                expect(response.body.deletedAt).not.toBeNull();
+            });
+
+            test('revert previous updates', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/note/${firstNote._id}`)
+                    .send({
+                        title: firstNote.title,
+                        color: firstNote.color,
+                        deleted: false,
+                    });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body.title).toEqual(firstNote.title);
+                expect(response.body.color).toEqual(firstNote.color);
+                expect(response.body._id).toEqual(firstNote._id);
+                expect(response.body.deleted).toBe(false);
+                expect(response.body.deletedAt).toBeNull();
+            });
+
+            test('does not update the note, wrong user', async () => {
+                const authedReq = await authorizedRequest(userWithNoAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/note/${firstNote._id}`)
+                    .send({
+                        title: secondNote.title,
+                        content: secondNote.content,
+                        deleted: true,
+                    });
+
+                expect(response.statusCode).toBe(403);
+            });
+        });
+
         describe('DELETE /api/v1/note/:id', () => {
             test('secondNote gets deleted', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
@@ -117,24 +171,25 @@ const noteTestSuite = () => {
 };
 
 /**
- * create Notes
- * check if Notebook's notes field has updated
- *
- * delete note
- * check if Notebook's notes field has updated
- *
  *
  * INVITE SYSTEM:
  *
- * add secondUser to Note's hasAccess
+ * invite secondUser to firstNote
+ * accept invite with secondUser
+ * add secondUser to firstNote's hasAccess
+ * check that secondUser can update firstNote
  *
- * remove secondUser from Note's hasAccess
+ * remove secondUser from firstNote's hasAccess
+ * check that secondUser can not update firstNote
  *
- * add secondUser to Notebook's hasAccess
- * check if Note's hasAccess has been cascadingly updated
+ * invite secondUser to redNotebook
+ * accept with secondUser
+ * check if firstNote's hasAccess has been cascadingly updated
+ * check that secondUser can update firstNote
  *
- * remove secondUser from Notebook's hasAccess
- * check if Note's hasAccess has been cascadingly updated
+ * remove secondUser from redNotebook's hasAccess
+ * check if (this time) secondNote's hasAccess has been cascadingly updated
+ * check that secondUser can not update first/secondNote anymore
  *
  *
  */

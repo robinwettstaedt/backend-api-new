@@ -113,7 +113,7 @@ const notebookTestSuite = () => {
         });
 
         describe('PUT /api/v1/notebook/:id', () => {
-            test('updates the note, responds with status code 200', async () => {
+            test('updates the notebook, responds with status code 200', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq

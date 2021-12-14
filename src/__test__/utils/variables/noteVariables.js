@@ -1,13 +1,13 @@
 export const firstNote = {
     title: 'firstNote',
-    content: 'firstNoteContent',
+    content: { content: 'firstNoteContent' },
     notebook: '',
     emoji: {},
 };
 
 export const secondNote = {
     title: 'secondNote',
-    content: 'secondNoteContent',
+    content: { content: 'secondNoteContent' },
     notebook: '',
     emoji: {},
 };
