@@ -3,6 +3,7 @@ import authenticationTestSuite from '../api/authentication/test/test.authenticat
 import userTestSuite from '../api/user/test/test.user';
 import notebookTestSuite from '../api/notebook/test/test.notebook';
 import noteTestSuite from '../api/note/test/test.note';
+import noteInviteTestSuite from '../api/noteInvite/test/test.noteInvite';
 import {
     connectToTestMongo,
     disconnectAndDropFromTestMongo,
@@ -24,4 +25,6 @@ describe('run all tests sequentially', () => {
     notebookTestSuite();
 
     noteTestSuite();
+
+    noteInviteTestSuite();
 });

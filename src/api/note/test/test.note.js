@@ -4,7 +4,6 @@
 import authorizedRequest from '../../../__test__/utils/authorizedRequest';
 import {
     userWithAccess,
-    secondUserWithAccess,
     userWithNoAccess,
 } from '../../../__test__/utils/variables/userVariables';
 
@@ -169,29 +168,5 @@ const noteTestSuite = () => {
         });
     });
 };
-
-/**
- *
- * INVITE SYSTEM:
- *
- * invite secondUser to firstNote
- * accept invite with secondUser
- * add secondUser to firstNote's hasAccess
- * check that secondUser can update firstNote
- *
- * remove secondUser from firstNote's hasAccess
- * check that secondUser can not update firstNote
- *
- * invite secondUser to redNotebook
- * accept with secondUser
- * check if firstNote's hasAccess has been cascadingly updated
- * check that secondUser can update firstNote
- *
- * remove secondUser from redNotebook's hasAccess
- * check if (this time) secondNote's hasAccess has been cascadingly updated
- * check that secondUser can not update first/secondNote anymore
- *
- *
- */
 
 export default noteTestSuite;
