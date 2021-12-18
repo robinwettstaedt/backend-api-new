@@ -102,7 +102,6 @@ const noteTestSuite = () => {
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual(secondNote.title);
-                expect(response.body.color).toEqual(secondNote.color);
                 expect(response.body._id).toEqual(firstNote._id);
                 expect(response.body.deleted).toBe(true);
                 expect(response.body.deletedAt).not.toBeNull();

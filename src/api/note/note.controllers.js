@@ -243,7 +243,6 @@ const removeFromHasAccess = (model) => async (req, res) => {
                 }
             )
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
             .populate('hasAccess', '_id email firstName picture')
             .exec();
 

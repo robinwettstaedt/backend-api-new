@@ -15,7 +15,6 @@ router
     .put(controllers.updateOne)
     .delete(controllers.removeOne);
 
-// router.route('/:id/access/add').put(controllers.addToHasAccess);
 router.route('/:id/access/remove').put(controllers.removeFromHasAccess);
 
 router
@@ -23,10 +22,7 @@ router
     .get(noteInviteControllers.getMany)
     .post(noteInviteControllers.createOne);
 
-router
-    .route('/invites/:invite_id')
-    // when an invite is cancelled by the inviter
-    .delete(noteInviteControllers.removeOne);
+router.route('/invites/:invite_id').delete(noteInviteControllers.removeOne);
 
 router
     .route('/invites/:invite_id/accept')
