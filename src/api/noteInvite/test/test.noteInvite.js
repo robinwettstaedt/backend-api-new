@@ -10,13 +10,18 @@ import {
 
 import { redNotebook } from '../../../__test__/utils/variables/notebookVariables';
 
-import {
-    firstNote,
-    secondNote,
-} from '../../../__test__/utils/variables/noteVariables';
+import { firstNote } from '../../../__test__/utils/variables/noteVariables';
 
 const noteInviteTestSuite = () => {
     describe('Test NoteInvite Controllers', () => {
+        beforeAll(async () => {
+            const authedReq = await authorizedRequest(userWithAccess);
+
+            const response = await authedReq.get('/api/v1/user');
+
+            userWithAccess._id = response.body.user._id;
+        });
+
         beforeAll(async () => {
             const authedReq = await authorizedRequest(secondUserWithAccess);
 
@@ -82,6 +87,78 @@ const noteInviteTestSuite = () => {
                 );
                 expect(response.body.note).toEqual(firstNote._id);
             });
+
+            test(`can not invite oneself, no new invite gets created`, async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .post(`/api/v1/note/${firstNote._id}/invites`)
+                    .send({ receiver: userWithAccess._id });
+
+                userWithAccess.invite = response.body._id;
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body.message).toMatch(/Can not invite/);
+            });
+
+            test(`invite already exists, no new invite gets created`, async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .post(`/api/v1/note/${firstNote._id}/invites`)
+                    .send({ receiver: userWithNoAccess._id });
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body.message).toMatch(/Invite already exists/);
+            });
+
+            test(`secondUser can not create a new invite for firstNote`, async () => {
+                const authedReq = await authorizedRequest(secondUserWithAccess);
+
+                const response = await authedReq
+                    .post(`/api/v1/note/${firstNote._id}/invites`)
+                    .send({ receiver: userWithNoAccess._id });
+
+                expect(response.statusCode).toBe(403);
+            });
+        });
+
+        describe('GET /api/v1/note/:id/invites', () => {
+            test(`fetches all invites for the firstNote`, async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq.get(
+                    `/api/v1/note/${firstNote._id}/invites`
+                );
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body[0].note).toEqual(firstNote._id);
+                expect(response.body[0].receiver._id).toEqual(
+                    secondUserWithAccess._id
+                );
+                expect(response.body[0].inviter._id).toEqual(
+                    userWithAccess._id
+                );
+                expect(response.body[1].receiver._id).toEqual(
+                    userWithNoAccess._id
+                );
+                expect(response.body[1].inviter._id).toEqual(
+                    userWithAccess._id
+                );
+            });
+        });
+
+        describe('GET /api/v1/user/invites', () => {
+            test('fetches the invites for secondUserWithAccess', async () => {
+                const authedReq = await authorizedRequest(secondUserWithAccess);
+
+                const response = await authedReq.get('/api/v1/user/invites');
+
+                const { noteInvites } = response.body;
+
+                expect(response.statusCode).toBe(200);
+                expect(noteInvites[0].note).toEqual(firstNote._id);
+            });
         });
 
         describe('DELETE /api/v1/note/invites/:invite_id/accept', () => {
@@ -104,6 +181,16 @@ const noteInviteTestSuite = () => {
         });
 
         describe('DELETE /api/v1/note/invites/:invite_id', () => {
+            test(`secondUserWithAccess tries to delete an invite they are not involved in`, async () => {
+                const authedReq = await authorizedRequest(secondUserWithAccess);
+
+                const response = await authedReq.delete(
+                    `/api/v1/note/invites/${userWithNoAccess.invite}`
+                );
+
+                expect(response.statusCode).toBe(403);
+            });
+
             test(`userWithNoAccess declines invite`, async () => {
                 const authedReq = await authorizedRequest(userWithNoAccess);
 
@@ -140,6 +227,17 @@ const noteInviteTestSuite = () => {
                     userWithAccess.email
                 );
                 expect(response.body.note).toEqual(firstNote._id);
+            });
+
+            test(`tries to invite the secondUser to the firstNote again`, async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .post(`/api/v1/note/${firstNote._id}/invites`)
+                    .send({ receiver: secondUserWithAccess._id });
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body.message).toMatch(/User does already/);
             });
         });
 

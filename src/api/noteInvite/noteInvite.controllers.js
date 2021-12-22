@@ -92,16 +92,6 @@ const removeOne = (model) => async (req, res) => {
             .exec();
 
         if (!removed) {
-            const doc = await model
-                .findOne({ _id: req.params.invite_id })
-                .lean()
-                .exec();
-
-            if (!doc) {
-                return res.status(404).end();
-            }
-
-            // the document exists but the user issuing the request is neither the inviter, nor the receiver
             return res.status(403).end();
         }
 
