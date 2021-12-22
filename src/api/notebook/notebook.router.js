@@ -20,10 +20,7 @@ router
     .get(notebookInviteControllers.getMany)
     .post(notebookInviteControllers.createOne);
 
-router
-    .route('/invites/:invite_id')
-    // when an invite is cancelled by the inviter or rejected by the receiver
-    .delete(notebookInviteControllers.removeOne);
+router.route('/invites/:invite_id').delete(notebookInviteControllers.removeOne);
 
 router
     .route('/invites/:invite_id/accept')

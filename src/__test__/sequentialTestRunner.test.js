@@ -8,6 +8,7 @@ import {
     connectToTestMongo,
     disconnectAndDropFromTestMongo,
 } from '../utils/createMongoTestConnection';
+import notebookInviteTestSuite from '../api/notebookInvite/test/test.notebookInvite';
 
 describe('run all tests sequentially', () => {
     beforeAll(async () => {
@@ -27,4 +28,6 @@ describe('run all tests sequentially', () => {
     noteTestSuite();
 
     noteInviteTestSuite();
+
+    notebookInviteTestSuite();
 });

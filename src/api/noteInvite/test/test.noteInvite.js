@@ -95,8 +95,6 @@ const noteInviteTestSuite = () => {
                     .post(`/api/v1/note/${firstNote._id}/invites`)
                     .send({ receiver: userWithAccess._id });
 
-                userWithAccess.invite = response.body._id;
-
                 expect(response.statusCode).toBe(400);
                 expect(response.body.message).toMatch(/Can not invite/);
             });
@@ -177,6 +175,26 @@ const noteInviteTestSuite = () => {
                     userWithAccess.email
                 );
                 expect(response.body.note).toEqual(firstNote._id);
+            });
+
+            test(`secondUserWithAccess can not accept userWithNoAccess' invite`, async () => {
+                const authedReq = await authorizedRequest(secondUserWithAccess);
+
+                const response = await authedReq.delete(
+                    `/api/v1/note/invites/${userWithNoAccess.invite}/accept`
+                );
+
+                expect(response.statusCode).toBe(403);
+            });
+
+            test(`invalid invite id`, async () => {
+                const authedReq = await authorizedRequest(secondUserWithAccess);
+
+                const response = await authedReq.delete(
+                    `/api/v1/note/invites/${userWithAccess._id}/accept`
+                );
+
+                expect(response.statusCode).toBe(404);
             });
         });
 
@@ -341,38 +359,3 @@ const noteInviteTestSuite = () => {
 };
 
 export default noteInviteTestSuite;
-
-/**
- *
- * Checklist:
- *
- * invite secondUser to firstNote
- * invite userWithNoAccess to firstNote
- * accept invite with secondUser
- * uninvite userWithNoAccess to firstNote
- * check that secondUser can update firstNote
- *
- * remove secondUser from firstNote's hasAccess
- * check that secondUser can not update firstNote
- *
- * ----------------------
- * above is checked off
- *
- *
- *
- * error cases for each endpoint
- *
- *
- *
- *
- * invite secondUser to redNotebook
- * accept with secondUser
- * check if firstNote's hasAccess has been cascadingly updated
- * check that secondUser can update firstNote
- *
- * remove secondUser from redNotebook's hasAccess
- * check if firstNote's hasAccess has been cascadingly updated
- * check that secondUser can not update firstNote anymore
- *
- *
- */
