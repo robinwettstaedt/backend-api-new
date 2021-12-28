@@ -56,7 +56,8 @@ const authenticationTestSuite = () => {
                             firstName: userWithAccess.firstName,
                             username: userWithAccess.username,
                         });
-                    expect(response.statusCode).toBe(500);
+                    expect(response.statusCode).toBe(400);
+                    expect(response.body).toEqual({});
                     expect(response.header['set-cookie']).toBeUndefined();
                 });
             });

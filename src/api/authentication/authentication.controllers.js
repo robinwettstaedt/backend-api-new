@@ -52,7 +52,7 @@ export const signin = async (req, res) => {
 
         return res.status(200).send({ accessToken });
     } catch (e) {
-        return res.status(500).end();
+        return res.status(400).end();
     }
 };
 
@@ -76,7 +76,7 @@ export const signup = async (req, res) => {
 
         return res.status(201).send({ accessToken });
     } catch (e) {
-        return res.status(500).end();
+        return res.status(400).end();
     }
 };
 
@@ -118,7 +118,7 @@ export const refreshAccessToken = async (req, res) => {
 
         return res.status(201).send({ accessToken: newAccessToken });
     } catch (error) {
-        return res.status(401).send({ message: 'invalid auth token' });
+        return res.status(400).send({ message: 'invalid auth token' });
     }
 };
 

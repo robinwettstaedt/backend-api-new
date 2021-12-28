@@ -42,11 +42,6 @@ const googleAuthController = async (req, res) => {
 
             const refreshToken = createRefreshToken(createduser);
 
-            res.cookie('jid', '', {
-                httpOnly: true,
-                path: process.env.HTTP_ONLY_COOKIE_PATH,
-            });
-
             res.cookie('jid', refreshToken, {
                 httpOnly: true,
                 path: process.env.HTTP_ONLY_COOKIE_PATH,
@@ -62,15 +57,10 @@ const googleAuthController = async (req, res) => {
             {
                 googleToken: token,
             },
-            { upsert: true }
+            { new: true }
         ).exec();
 
         const refreshToken = createRefreshToken(existingUser);
-
-        res.clearCookie('jid', {
-            httpOnly: true,
-            path: process.env.HTTP_ONLY_COOKIE_PATH,
-        });
 
         res.cookie('jid', refreshToken, {
             httpOnly: true,
@@ -81,7 +71,6 @@ const googleAuthController = async (req, res) => {
 
         return res.status(201).send({ accessToken });
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
