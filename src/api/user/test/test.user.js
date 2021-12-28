@@ -11,47 +11,39 @@ import {
 const userTestSuite = () => {
     describe('Test User Controllers', () => {
         describe('GET /api/v1/user', () => {
-            describe('fetches user data for the first user', () => {
-                test('responds with status code 200 & correct user information', async () => {
-                    const authedReq = await authorizedRequest(userWithAccess);
+            test('responds with correct information on userWithAccess', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
 
-                    const response = await authedReq.get('/api/v1/user');
-                    expect(response.statusCode).toBe(200);
-                    expect(response.body.user.username).toEqual(
-                        userWithAccess.username
-                    );
-                });
+                const response = await authedReq.get('/api/v1/user');
+                expect(response.statusCode).toBe(200);
+                expect(response.body.user.username).toEqual(
+                    userWithAccess.username
+                );
             });
 
-            describe('fetches user data for the second user', () => {
-                test('responds with status code 200 & correct user information', async () => {
-                    const authedReq = await authorizedRequest(
-                        secondUserWithAccess
-                    );
+            test('responds with correct information on secondUserWithAccess', async () => {
+                const authedReq = await authorizedRequest(secondUserWithAccess);
 
-                    const response = await authedReq.get('/api/v1/user');
-                    expect(response.statusCode).toBe(200);
-                    expect(response.body.user.username).toEqual(
-                        secondUserWithAccess.username
-                    );
-                });
+                const response = await authedReq.get('/api/v1/user');
+                expect(response.statusCode).toBe(200);
+                expect(response.body.user.username).toEqual(
+                    secondUserWithAccess.username
+                );
             });
 
-            describe('fetches user data for the third user', () => {
-                test('responds with status code 200 & correct user information', async () => {
-                    const authedReq = await authorizedRequest(userWithNoAccess);
+            test('responds with correct information on userWithNoAccess', async () => {
+                const authedReq = await authorizedRequest(userWithNoAccess);
 
-                    const response = await authedReq.get('/api/v1/user');
-                    expect(response.statusCode).toBe(200);
-                    expect(response.body.user.username).toEqual(
-                        userWithNoAccess.username
-                    );
-                });
+                const response = await authedReq.get('/api/v1/user');
+                expect(response.statusCode).toBe(200);
+                expect(response.body.user.username).toEqual(
+                    userWithNoAccess.username
+                );
             });
         });
 
         describe('PUT /api/v1/user', () => {
-            test('updates the theme, responds with status code 200 and the user data', async () => {
+            test("updates the userWithAccess' settings", async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq.put('/api/v1/user').send({
@@ -71,7 +63,7 @@ const userTestSuite = () => {
                 expect(response.body.data.username).toEqual('Knoff');
             });
 
-            test('does not update the theme, responds with status code 400 and an error message', async () => {
+            test('updates the notification but not the theme setting', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq.put('/api/v1/user').send({
@@ -82,7 +74,7 @@ const userTestSuite = () => {
                 expect(response.body.message).toMatch(/<theme> value/);
             });
 
-            test('does not update the notifications setting, responds with status code 400 and an error message', async () => {
+            test('updates the theme but not the notifications setting', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq.put('/api/v1/user').send({
@@ -93,10 +85,9 @@ const userTestSuite = () => {
                 expect(response.body.message).toMatch(/<notifications> value/);
             });
 
-            test('does not update googleToken as user has registered via email', async () => {
+            test('does not update the googleToken field as user has registered via email', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
-                // users with password have signed in with email, not with google auth and can therefore not change their googleToken
                 const response = await authedReq.put('/api/v1/user').send({
                     googleToken: 'AAAAAAA',
                 });
@@ -104,22 +95,20 @@ const userTestSuite = () => {
                 expect(response.statusCode).toBe(400);
             });
 
-            describe('sending arbitrary json as update data is filtered by mongoose', () => {
-                test('responds with status code 200, username change is reversed, arbitrary data does not exist on response body', async () => {
-                    const authedReq = await authorizedRequest(userWithAccess);
+            test('sending arbitrary json as update data is filtered by mongoose', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
 
-                    // users with password have signed in with email, not with google auth and can therefore not change their googleToken
-                    const response = await authedReq.put('/api/v1/user').send({
-                        hello: 'data',
-                        username: userWithAccess.username,
-                    });
-
-                    expect(response.statusCode).toBe(200);
-                    expect(response.body.data.hello).toBeUndefined();
-                    expect(response.body.data.username).toEqual(
-                        userWithAccess.username
-                    );
+                // users with password have signed in with email, not with google auth and can therefore not change their googleToken
+                const response = await authedReq.put('/api/v1/user').send({
+                    hello: 'data',
+                    username: userWithAccess.username,
                 });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body.data.hello).toBeUndefined();
+                expect(response.body.data.username).toEqual(
+                    userWithAccess.username
+                );
             });
         });
     });

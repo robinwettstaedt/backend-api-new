@@ -17,7 +17,7 @@ import {
 const notebookTestSuite = () => {
     describe('Test Notebook Controllers', () => {
         describe('POST /api/v1/notebook', () => {
-            test('(redNotebook) responds with status code 201 & correct notebook information', async () => {
+            test('responds with correct information about the redNotebook', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq.post('/api/v1/notebook').send({
@@ -41,7 +41,7 @@ const notebookTestSuite = () => {
                 expect(response.body.title).toEqual(redNotebook.title);
             });
 
-            test('(greenNotebook) responds with status code 201 & correct notebook information', async () => {
+            test('responds with correct information about the greenNotebook', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq.post('/api/v1/notebook').send({
@@ -65,7 +65,7 @@ const notebookTestSuite = () => {
                 expect(response.body.title).toEqual(greenNotebook.title);
             });
 
-            test('(blueNotebook) responds with status code 201 & correct notebook information', async () => {
+            test('responds with correct information about the blueNotebook', async () => {
                 const authedReq = await authorizedRequest(secondUserWithAccess);
 
                 const response = await authedReq.post('/api/v1/notebook').send({
@@ -89,7 +89,7 @@ const notebookTestSuite = () => {
                 expect(response.body.title).toEqual(blueNotebook.title);
             });
 
-            test('(color is not a hex value) responds with status code 400', async () => {
+            test('does not create the notebook (color is not a hex value)', async () => {
                 const authedReq = await authorizedRequest(secondUserWithAccess);
 
                 const response = await authedReq.post('/api/v1/notebook').send({
@@ -101,7 +101,7 @@ const notebookTestSuite = () => {
                 expect(response.body.message).toMatch(/hex string/);
             });
 
-            test('(title missing) responds with status code 400', async () => {
+            test('does not create the notebook (title missing)', async () => {
                 const authedReq = await authorizedRequest(secondUserWithAccess);
 
                 const response = await authedReq.post('/api/v1/notebook').send({
@@ -113,7 +113,7 @@ const notebookTestSuite = () => {
         });
 
         describe('PUT /api/v1/notebook/:id', () => {
-            test('updates the notebook, responds with status code 200', async () => {
+            test('correctly updates the notebook', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq
@@ -132,7 +132,7 @@ const notebookTestSuite = () => {
                 expect(response.body.deletedAt).not.toBeNull();
             });
 
-            test('revert previous updates, responds with status code 200', async () => {
+            test('reverts previous updates', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq
@@ -151,7 +151,7 @@ const notebookTestSuite = () => {
                 expect(response.body.deletedAt).toBeNull();
             });
 
-            test('(color not a hex value) responds with status code 400', async () => {
+            test('does not update the notebook (color not a hex value)', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq
@@ -179,7 +179,7 @@ const notebookTestSuite = () => {
                 );
             });
 
-            test('updates fail (user without access trying to update)', async () => {
+            test('does not update notebook (userWithNoAccess trying to update)', async () => {
                 const authedReq = await authorizedRequest(userWithNoAccess);
 
                 const response = await authedReq
@@ -193,7 +193,7 @@ const notebookTestSuite = () => {
         });
 
         describe('DELETE /api/v1/notebook/:id', () => {
-            test('deletes the notebook, responds with status code 200', async () => {
+            test('deletes the notebook', async () => {
                 const authedReq = await authorizedRequest(secondUserWithAccess);
 
                 const response = await authedReq.delete(

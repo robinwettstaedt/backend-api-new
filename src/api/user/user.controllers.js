@@ -11,7 +11,6 @@ const THEME_ENUM = ['LIGHT', 'DARK'];
 const getOne = () => async (req, res) => {
     try {
         const { user } = req; // user object that gets attached by the protect() middleware
-        console.log(user);
         return res.status(200).send({ user });
     } catch (e) {
         console.error(e);

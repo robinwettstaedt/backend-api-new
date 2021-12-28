@@ -40,7 +40,6 @@ const getOne = (model) => async (req, res) => {
 
         return res.status(200).json(doc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -61,7 +60,6 @@ const getMany = (model) => async (req, res) => {
 
         return res.status(200).json(docs);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -95,7 +93,6 @@ const createOne = (model) => async (req, res) => {
 
         return res.status(201).json(doc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -155,7 +152,6 @@ const updateOne = (model) => async (req, res) => {
 
         return res.status(200).json(updatedDoc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -184,63 +180,9 @@ const removeOne = (model) => async (req, res) => {
 
         return res.status(200).json(removed);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
-
-// adding users to the hasAccess field is handled by the invite system
-// export const addToHasAccess = (model) => async (req, res) => {
-//   try {
-//     const userToAdd = req.body._id;
-
-//     if (!userToAdd) {
-//       return res.status(400).json({
-//         message: 'No valid user to remove was given in the request body',
-//       });
-//     }
-
-//     const updatedDoc = await model
-//       .findOneAndUpdate(
-//         { _id: req.params.id, hasAccess: req.user._id },
-//         { $addToSet: { hasAccess: userToAdd } },
-//         {
-//           new: true,
-//         }
-//       )
-//       .select('-__v')
-//       .populate('notes', '_id title emoji deleted deletedAt visible')
-//       .populate('hasAccess', '_id email firstName picture')
-//       .exec();
-
-//     if (!updatedDoc) {
-//       const doc = await model.findOne({ _id: req.params.id }).lean().exec();
-
-//       if (!doc) {
-//         return res.status(404).end();
-//       }
-
-//       if (!userHasAccess(doc, req.user._id)) {
-//         return res.status(403).end();
-//       }
-
-//       return res.status(404).end();
-//     }
-
-//     // iterate over the Note ids that are given on the Notebook and update their hasAccess field
-//     for (const noteID of updatedDoc.notes) {
-//       await Note.updateOne(
-//         { _id: noteID },
-//         { $addToSet: { hasAccess: userToAdd } }
-//       );
-//     }
-
-//     res.status(200).json(updatedDoc);
-//   } catch (e) {
-//     console.error(e);
-//     res.status(400).end();
-//   }
-// };
 
 const removeFromHasAccess = (model) => async (req, res) => {
     try {
@@ -285,7 +227,6 @@ const removeFromHasAccess = (model) => async (req, res) => {
 
         return res.status(200).json(updatedDoc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
