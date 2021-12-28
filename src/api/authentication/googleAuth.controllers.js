@@ -31,22 +31,25 @@ const googleAuthController = async (req, res) => {
 
         const existingUser = await User.findOne({ email }).lean().exec();
 
-        console.log(picture);
-
         if (!existingUser) {
             const createduser = await User.create({
                 username: defaultUsername,
                 email,
-                given_name,
+                firstName: given_name,
                 picture,
                 googleToken: token,
             });
 
             const refreshToken = createRefreshToken(createduser);
 
+            res.cookie('jid', '', {
+                httpOnly: true,
+                path: process.env.HTTP_ONLY_COOKIE_PATH,
+            });
+
             res.cookie('jid', refreshToken, {
                 httpOnly: true,
-                path: '/refresh_token',
+                path: process.env.HTTP_ONLY_COOKIE_PATH,
             });
 
             const accessToken = createAccessToken(createduser);
@@ -54,7 +57,7 @@ const googleAuthController = async (req, res) => {
             return res.status(201).send({ accessToken });
         }
 
-        const updatedUser = await User.findOneAndUpdate(
+        await User.findOneAndUpdate(
             { email },
             {
                 googleToken: token,
@@ -62,14 +65,19 @@ const googleAuthController = async (req, res) => {
             { upsert: true }
         ).exec();
 
-        const refreshToken = createRefreshToken(updatedUser);
+        const refreshToken = createRefreshToken(existingUser);
+
+        res.clearCookie('jid', {
+            httpOnly: true,
+            path: process.env.HTTP_ONLY_COOKIE_PATH,
+        });
 
         res.cookie('jid', refreshToken, {
             httpOnly: true,
-            path: '/refresh_token',
+            path: process.env.HTTP_ONLY_COOKIE_PATH,
         });
 
-        const accessToken = createAccessToken(updatedUser);
+        const accessToken = createAccessToken(existingUser);
 
         return res.status(201).send({ accessToken });
     } catch (e) {

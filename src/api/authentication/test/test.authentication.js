@@ -14,8 +14,6 @@ import {
     userWithNoAccess,
 } from '../../../__test__/utils/variables/userVariables';
 
-let COOKIE;
-
 const authenticationTestSuite = () => {
     describe('Test Authentication', () => {
         describe('API Route Protection', () => {
@@ -114,7 +112,7 @@ const authenticationTestSuite = () => {
 
         describe('POST /signin', () => {
             describe('signs in the user', () => {
-                test('responds with status code 200, accessToken not empty, cookie set, email field not empty', async () => {
+                test('responds with status code 200, accessToken not empty, cookie set', async () => {
                     const response = await request(app)
                         .post('/auth/signin')
                         .send({
@@ -123,13 +121,31 @@ const authenticationTestSuite = () => {
                         });
                     expect(response.statusCode).toBe(200);
                     expect(response.body.accessToken).not.toBe('');
-                    expect(response.header['set-cookie'][0]).toMatch(/jid/);
-                    expect(response.body.email).toBe('testuser@testuser.com');
+                    expect(response.header['set-cookie'][0]).toMatch(/jid=ey/);
 
                     const [cookie] = response.headers['set-cookie']
                         .pop()
                         .split(';');
-                    COOKIE = cookie;
+                    userWithAccess.cookie = cookie;
+                });
+            });
+
+            describe('signs in the second user', () => {
+                test('responds with status code 200, accessToken not empty, cookie set', async () => {
+                    const response = await request(app)
+                        .post('/auth/signin')
+                        .send({
+                            email: secondUserWithAccess.email,
+                            password: secondUserWithAccess.password,
+                        });
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body.accessToken).not.toBe('');
+                    expect(response.header['set-cookie'][0]).toMatch(/jid=ey/);
+
+                    const [cookie] = response.headers['set-cookie']
+                        .pop()
+                        .split(';');
+                    secondUserWithAccess.cookie = cookie;
                 });
             });
 
@@ -141,7 +157,8 @@ const authenticationTestSuite = () => {
                             email: 'incorrect@email.com',
                             password: userWithAccess.password,
                         });
-                    expect(response.statusCode).toBe(401);
+                    expect(response.statusCode).toBe(404);
+                    expect(response.body.message).toMatch(/User not found/);
                 });
 
                 test('wrong pw, responds with status code 401', async () => {
@@ -152,6 +169,9 @@ const authenticationTestSuite = () => {
                             password: 'thisisthewrongpw',
                         });
                     expect(response.statusCode).toBe(401);
+                    expect(response.body.message).toMatch(
+                        /Invalid email and password combination/
+                    );
                 });
             });
 
@@ -186,12 +206,51 @@ const authenticationTestSuite = () => {
                 test('responds with status code 201, returns message with token', async () => {
                     const req = request(app).post('/auth/refreshaccess');
 
-                    req.cookies = COOKIE;
+                    req.cookies = userWithAccess.cookie;
 
                     const response = await req.send();
 
+                    userWithAccess.token = `Bearer ${response.body.accessToken}`;
+
                     expect(response.statusCode).toBe(201);
                     expect(response.body.accessToken).not.toBe('');
+                });
+
+                test('firstUser: ensures the previously set accessToken is correct', async () => {
+                    const response = await request(app)
+                        .get('/api/v1/user')
+                        .set('Authorization', userWithAccess.token);
+
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body.user.username).toEqual(
+                        userWithAccess.username
+                    );
+                });
+            });
+
+            describe('refreshes the users access token', () => {
+                test('responds with status code 201, returns message with token', async () => {
+                    const req = request(app).post('/auth/refreshaccess');
+
+                    req.cookies = secondUserWithAccess.cookie;
+
+                    const response = await req.send();
+
+                    secondUserWithAccess.token = `Bearer ${response.body.accessToken}`;
+
+                    expect(response.statusCode).toBe(201);
+                    expect(response.body.accessToken).not.toBe('');
+                });
+
+                test('secondUser: ensures the previously set accessToken is correct', async () => {
+                    const response = await request(app)
+                        .get('/api/v1/user')
+                        .set('Authorization', secondUserWithAccess.token);
+
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body.user.username).toEqual(
+                        secondUserWithAccess.username
+                    );
                 });
             });
         });

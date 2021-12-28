@@ -15,6 +15,9 @@ const app = express();
 
 app.disable('x-powered-by');
 
+// this is because of 304 status code / express just sending cached data
+app.disable('etag');
+
 if (process.env.NODE_ENV === 'production') {
     app.use(
         cors({
