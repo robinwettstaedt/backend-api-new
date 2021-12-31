@@ -6,7 +6,7 @@ import { NotebookInvite } from '../notebookInvite/notebookInvite.model';
 import { Todo } from '../todo/todo.model';
 
 const NOTIFICATIONS_ENUM = ['ALL', 'TODOS', 'INVITES', 'NONE'];
-const THEME_ENUM = ['LIGHT', 'DARK'];
+const THEME_ENUM = ['LIGHT', 'DARK', 'AUTO'];
 
 const getOne = () => async (req, res) => {
     try {

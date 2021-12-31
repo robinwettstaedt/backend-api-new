@@ -20,7 +20,10 @@ const getOne = (model) => async (req, res) => {
         const doc = await model
             .findOne({ _id: req.params.id, hasAccess: req.user._id })
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate(
+                'notes',
+                '_id title emoji deleted deletedAt archived archivedAt visible'
+            )
             .populate('hasAccess', '_id email firstName picture')
             .lean()
             .exec();
@@ -49,7 +52,10 @@ const getMany = (model) => async (req, res) => {
         const docs = await model
             .find({ hasAccess: req.user._id })
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate(
+                'notes',
+                '_id title emoji deleted deletedAt archived archivedAt visible'
+            )
             .populate('hasAccess', '_id email firstName picture')
             .lean()
             .exec();
@@ -82,7 +88,10 @@ const createOne = (model) => async (req, res) => {
         const doc = await model
             .findById(createdDoc._id)
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate(
+                'notes',
+                '_id title emoji deleted deletedAt archived archivedAt visible'
+            )
             .populate('hasAccess', '_id email firstName picture')
             .lean()
             .exec();
@@ -144,7 +153,10 @@ const updateOne = (model) => async (req, res) => {
                 }
             )
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate(
+                'notes',
+                '_id title emoji deleted deletedAt archived archivedAt visible'
+            )
             .populate('hasAccess', '_id email firstName picture')
             .exec();
 
@@ -170,7 +182,10 @@ const removeOne = (model) => async (req, res) => {
         const removed = await model
             .findOneAndRemove({ _id: req.params.id, hasAccess: req.user._id })
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate(
+                'notes',
+                '_id title emoji deleted deletedAt archived archivedAt visible'
+            )
             .populate('hasAccess', '_id email firstName picture')
             .exec();
 
@@ -213,7 +228,10 @@ const removeFromHasAccess = (model) => async (req, res) => {
                 }
             )
             .select('-__v')
-            .populate('notes', '_id title emoji deleted deletedAt visible')
+            .populate(
+                'notes',
+                '_id title emoji deleted deletedAt archived archivedAt visible'
+            )
             .populate('hasAccess', '_id email firstName picture')
             .exec();
 

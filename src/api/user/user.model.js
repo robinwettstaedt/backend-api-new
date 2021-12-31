@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
         settings: {
             theme: {
                 type: String,
-                default: 'DARK',
+                default: 'AUTO',
             },
             notifications: {
                 type: String,
