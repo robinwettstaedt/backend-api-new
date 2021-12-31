@@ -13,7 +13,6 @@ const getOne = () => async (req, res) => {
         const { user } = req; // user object that gets attached by the protect() middleware
         return res.status(200).send({ user });
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -83,7 +82,6 @@ const updateOne = (model) => async (req, res) => {
 
         return res.status(200).json({ data: updatedDoc });
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -123,7 +121,6 @@ const removeOne = (model) => async (req, res) => {
                 'Successfully deleted all user information and terminated the account',
         });
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -154,7 +151,6 @@ const getInvites = () => async (req, res) => {
 
         return res.status(200).json(response);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };

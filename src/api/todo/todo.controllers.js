@@ -21,7 +21,6 @@ const getOne = (model) => async (req, res) => {
 
         return res.status(200).json(doc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -40,7 +39,6 @@ const getMany = (model) => async (req, res) => {
 
         return res.status(200).json(docs);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -90,7 +88,6 @@ const createOne = (model) => async (req, res) => {
 
         return res.status(201).json(doc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -153,7 +150,6 @@ const updateOne = (model) => async (req, res) => {
 
         return res.status(200).json(updatedDoc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -184,7 +180,6 @@ const removeOne = (model) => async (req, res) => {
 
         return res.status(200).json(removedDoc);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
@@ -208,7 +203,6 @@ const removeMany = (model) => async (req, res) => {
 
         return res.status(200).json(docs);
     } catch (e) {
-        console.error(e);
         return res.status(400).end();
     }
 };
