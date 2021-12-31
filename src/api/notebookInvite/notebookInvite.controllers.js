@@ -33,9 +33,7 @@ const createOne = (model) => async (req, res) => {
             return res.status(400).json({ message: 'Can not invite yourself' });
         }
 
-        const notebook = await Notebook.findOne({
-            _id: newInvite.notebook,
-        })
+        const notebook = await Notebook.findById(newInvite.notebook)
             .lean()
             .exec();
 
@@ -65,7 +63,7 @@ const createOne = (model) => async (req, res) => {
         const createdDoc = await model.create(newInvite);
 
         const doc = await model
-            .findOne({ _id: createdDoc._id })
+            .findById(createdDoc._id)
             .select('-__v')
             .populate('inviter', '_id email firstName picture')
             .populate('receiver', '_id email firstName picture')
@@ -95,7 +93,7 @@ const removeOne = (model) => async (req, res) => {
 
         if (!removed) {
             const doc = await model
-                .findOne({ _id: req.params.invite_id })
+                .findById(req.params.invite_id)
                 .lean()
                 .exec();
 
@@ -118,7 +116,7 @@ const acceptOne = (model) => async (req, res) => {
     try {
         const inviteID = req.params.invite_id;
 
-        const invite = await model.findOne({ _id: inviteID }).lean().exec();
+        const invite = await model.findById(inviteID).lean().exec();
 
         if (!invite) {
             return res.status(404).json({ message: 'Invite not found' });
@@ -143,7 +141,7 @@ const acceptOne = (model) => async (req, res) => {
             .exec();
 
         if (!updatedNotebook) {
-            const notebook = await Notebook.findOne({ _id: invite.notebook })
+            const notebook = await Notebook.findById(invite.notebook)
                 .lean()
                 .exec();
 

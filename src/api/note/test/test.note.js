@@ -89,7 +89,7 @@ const noteTestSuite = () => {
         });
 
         describe('PUT /api/v1/note/:id', () => {
-            test('updates the note, also marks as deleted', async () => {
+            test('updates the note', async () => {
                 const authedReq = await authorizedRequest(userWithAccess);
 
                 const response = await authedReq
@@ -97,14 +97,41 @@ const noteTestSuite = () => {
                     .send({
                         title: secondNote.title,
                         content: secondNote.content,
-                        deleted: true,
                     });
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual(secondNote.title);
                 expect(response.body._id).toEqual(firstNote._id);
+            });
+
+            test('marks the note as deleted', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/note/${firstNote._id}`)
+                    .send({
+                        deleted: true,
+                    });
+
+                expect(response.statusCode).toBe(200);
                 expect(response.body.deleted).toBe(true);
                 expect(response.body.deletedAt).not.toBeNull();
+                expect(response.body.archived).toBe(false);
+            });
+
+            test('marks the note as archived', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/note/${firstNote._id}`)
+                    .send({
+                        archived: true,
+                    });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body.archived).toBe(true);
+                expect(response.body.archivedAt).not.toBeNull();
+                expect(response.body.deleted).toBe(false);
             });
 
             test('revert previous updates', async () => {
@@ -115,7 +142,7 @@ const noteTestSuite = () => {
                     .send({
                         title: firstNote.title,
                         color: firstNote.color,
-                        deleted: false,
+                        archived: false,
                     });
 
                 expect(response.statusCode).toBe(200);
@@ -124,6 +151,8 @@ const noteTestSuite = () => {
                 expect(response.body._id).toEqual(firstNote._id);
                 expect(response.body.deleted).toBe(false);
                 expect(response.body.deletedAt).toBeNull();
+                expect(response.body.archived).toBe(false);
+                expect(response.body.archivedAt).toBeNull();
             });
 
             test('does not update the note, wrong user', async () => {

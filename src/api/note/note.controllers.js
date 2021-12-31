@@ -81,7 +81,7 @@ const createOne = (model) => async (req, res) => {
         await createdDoc.save();
 
         const doc = await model
-            .findOne({ _id: createdDoc._id })
+            .findById(createdDoc._id)
             .select('-__v')
             .populate('hasAccess', '_id email firstName picture')
             .lean()
@@ -103,9 +103,21 @@ const updateOne = (model) => async (req, res) => {
         const noteUpdates = req.body;
         noteUpdates.lastUpdatedBy = req.user._id;
 
+        // check for archived status
+        if (noteUpdates.archived === true) {
+            noteUpdates.archivedAt = Date.now();
+            noteUpdates.deleted = false;
+            noteUpdates.deletedAt = null;
+        }
+        if (noteUpdates.archived === false) {
+            noteUpdates.archivedAt = null;
+        }
+
         // check for deletion status
         if (noteUpdates.deleted === true) {
             noteUpdates.deletedAt = Date.now();
+            noteUpdates.archived = false;
+            noteUpdates.archivedAt = null;
         }
         if (noteUpdates.deleted === false) {
             noteUpdates.deletedAt = null;
@@ -128,10 +140,7 @@ const updateOne = (model) => async (req, res) => {
             .exec();
 
         if (!updatedDoc) {
-            const doc = await model
-                .findOne({ _id: req.params.id })
-                .lean()
-                .exec();
+            const doc = await model.findById(req.params.id).lean().exec();
 
             if (!doc) {
                 return res.status(404).end();
@@ -156,10 +165,7 @@ const removeOne = (model) => async (req, res) => {
             .exec();
 
         if (!removed) {
-            const doc = await model
-                .findOne({ _id: req.params.id })
-                .lean()
-                .exec();
+            const doc = await model.findById(req.params.id).lean().exec();
 
             if (!doc) {
                 return res.status(404).end();

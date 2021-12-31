@@ -121,15 +121,42 @@ const notebookTestSuite = () => {
                     .send({
                         title: redNotebook.title,
                         color: redNotebook.color,
-                        deleted: true,
                     });
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual(redNotebook.title);
                 expect(response.body.color).toEqual(redNotebook.color);
                 expect(response.body._id).toEqual(greenNotebook._id);
+            });
+
+            test('marks the notebook as deleted', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/notebook/${greenNotebook._id}`)
+                    .send({
+                        deleted: true,
+                    });
+
+                expect(response.statusCode).toBe(200);
                 expect(response.body.deleted).toBe(true);
                 expect(response.body.deletedAt).not.toBeNull();
+                expect(response.body.archived).toBe(false);
+            });
+
+            test('marks the notebook as archived', async () => {
+                const authedReq = await authorizedRequest(userWithAccess);
+
+                const response = await authedReq
+                    .put(`/api/v1/notebook/${greenNotebook._id}`)
+                    .send({
+                        archived: true,
+                    });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body.archived).toBe(true);
+                expect(response.body.archivedAt).not.toBeNull();
+                expect(response.body.deleted).toBe(false);
             });
 
             test('reverts previous updates', async () => {
@@ -140,7 +167,7 @@ const notebookTestSuite = () => {
                     .send({
                         title: greenNotebook.title,
                         color: greenNotebook.color,
-                        deleted: false,
+                        archived: false,
                     });
 
                 expect(response.statusCode).toBe(200);
@@ -149,6 +176,8 @@ const notebookTestSuite = () => {
                 expect(response.body._id).toEqual(greenNotebook._id);
                 expect(response.body.deleted).toBe(false);
                 expect(response.body.deletedAt).toBeNull();
+                expect(response.body.archived).toBe(false);
+                expect(response.body.archivedAt).toBeNull();
             });
 
             test('does not update the notebook (color not a hex value)', async () => {

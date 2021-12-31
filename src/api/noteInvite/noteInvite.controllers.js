@@ -32,11 +32,7 @@ const createOne = (model) => async (req, res) => {
             return res.status(400).json({ message: 'Can not invite yourself' });
         }
 
-        const note = await Note.findOne({
-            _id: newInvite.note,
-        })
-            .lean()
-            .exec();
+        const note = await Note.findById(newInvite.note).lean().exec();
 
         // only the creator of a note can invite other users
         if (!note.createdBy.equals(newInvite.inviter)) {
@@ -64,7 +60,7 @@ const createOne = (model) => async (req, res) => {
         const createdDoc = await model.create(newInvite);
 
         const doc = await model
-            .findOne({ _id: createdDoc._id })
+            .findById(createdDoc._id)
             .select('-__v')
             .populate('inviter', '_id email firstName picture')
             .populate('receiver', '_id email firstName picture')
@@ -106,7 +102,7 @@ const acceptOne = (model) => async (req, res) => {
     try {
         const inviteID = req.params.invite_id;
 
-        const invite = await model.findOne({ _id: inviteID }).lean().exec();
+        const invite = await model.findById(inviteID).lean().exec();
 
         if (!invite) {
             return res.status(404).json({ message: 'Invite not found' });
@@ -131,7 +127,7 @@ const acceptOne = (model) => async (req, res) => {
             .exec();
 
         if (!updatedNote) {
-            const note = await Note.findOne({ _id: invite.note }).lean().exec();
+            const note = await Note.findById(invite.note).lean().exec();
 
             if (!note) {
                 return res

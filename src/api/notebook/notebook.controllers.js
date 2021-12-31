@@ -80,7 +80,7 @@ const createOne = (model) => async (req, res) => {
         const createdDoc = await model.create(notebook);
 
         const doc = await model
-            .findOne({ _id: createdDoc._id })
+            .findById(createdDoc._id)
             .select('-__v')
             .populate('notes', '_id title emoji deleted deletedAt visible')
             .populate('hasAccess', '_id email firstName picture')
@@ -109,9 +109,21 @@ const updateOne = (model) => async (req, res) => {
             }
         }
 
+        // check for archived status
+        if (notebookUpdates.archived === true) {
+            notebookUpdates.archivedAt = Date.now();
+            notebookUpdates.deleted = false;
+            notebookUpdates.deletedAt = null;
+        }
+        if (notebookUpdates.archived === false) {
+            notebookUpdates.archivedAt = null;
+        }
+
         // check for deletion status
         if (notebookUpdates.deleted === true) {
             notebookUpdates.deletedAt = Date.now();
+            notebookUpdates.archived = false;
+            notebookUpdates.archivedAt = null;
         }
         if (notebookUpdates.deleted === false) {
             notebookUpdates.deletedAt = null;
@@ -138,10 +150,7 @@ const updateOne = (model) => async (req, res) => {
 
         // check for the cause of the non existent updated document and return correct error status code
         if (!updatedDoc) {
-            const doc = await model
-                .findOne({ _id: req.params.id })
-                .lean()
-                .exec();
+            const doc = await model.findById(req.params.id).lean().exec();
 
             if (!doc) {
                 return res.status(404).end();
@@ -166,10 +175,7 @@ const removeOne = (model) => async (req, res) => {
             .exec();
 
         if (!removed) {
-            const doc = await model
-                .findOne({ _id: req.params.id })
-                .lean()
-                .exec();
+            const doc = await model.findById(req.params.id).lean().exec();
 
             if (!doc) {
                 return res.status(404).end();
@@ -186,7 +192,7 @@ const removeOne = (model) => async (req, res) => {
 
 const removeFromHasAccess = (model) => async (req, res) => {
     try {
-        const doc = await model.findOne({ _id: req.params.id }).lean().exec();
+        const doc = await model.findById(req.params.id).lean().exec();
 
         if (!doc.createdBy.equals(req.user._id)) {
             return res.status(403).end();
@@ -216,6 +222,19 @@ const removeFromHasAccess = (model) => async (req, res) => {
         }
 
         // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
+        // try if this fix from eslint works
+        // 		*eslint no-await-in-loop: "error"*/
+
+        // async function foo(things) {
+        //   const results = [];
+        //   for (const thing of things) {
+        //     // Good: all asynchronous operations are immediately started.
+        //     results.push(bar(thing));
+        //   }
+        //   // Now that all the asynchronous operations are running, here we wait until they all complete.
+        //   return baz(await Promise.all(results));
+        // }
+
         // eslint-disable-next-line no-restricted-syntax
         for (const noteID of updatedDoc.notes) {
             // eslint-disable-next-line no-await-in-loop
