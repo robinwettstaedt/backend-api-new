@@ -57,11 +57,11 @@ export const signin = async (req, res) => {
 };
 
 export const signup = async (req, res) => {
-    if (!req.body.email || !req.body.password) {
-        return res.status(400).send({ message: 'need email and password' });
-    }
-
     try {
+        if (!req.body.email || !req.body.password) {
+            return res.status(400).send({ message: 'need email and password' });
+        }
+
         const user = await User.create(req.body);
 
         const refreshToken = createRefreshToken(user);
