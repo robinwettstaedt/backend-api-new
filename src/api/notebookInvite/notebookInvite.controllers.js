@@ -154,14 +154,18 @@ const acceptOne = (model) => async (req, res) => {
         }
 
         // iterate over the Note ids that are given on the Notebook and update their hasAccess field
-        // eslint-disable-next-line no-restricted-syntax
-        for (const noteID of updatedNotebook.notes) {
-            // eslint-disable-next-line no-await-in-loop
-            await Note.updateOne(
-                { _id: noteID },
-                { $addToSet: { hasAccess: invite.receiver } }
+        const noteUpdates = [];
+
+        updatedNotebook.notes.forEach((noteID) => {
+            noteUpdates.push(
+                Note.updateOne(
+                    { _id: noteID },
+                    { $addToSet: { hasAccess: invite.receiver } }
+                )
             );
-        }
+        });
+
+        await Promise.all(noteUpdates);
 
         // deleting the accepted invite
         const removed = await model

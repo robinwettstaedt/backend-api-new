@@ -240,27 +240,18 @@ const removeFromHasAccess = (model) => async (req, res) => {
         }
 
         // iterate over the note ids that are given on the Notebook doc and update their hasAccess field
-        // try if this fix from eslint works
-        // 		*eslint no-await-in-loop: "error"*/
+        const noteUpdates = [];
 
-        // async function foo(things) {
-        //   const results = [];
-        //   for (const thing of things) {
-        //     // Good: all asynchronous operations are immediately started.
-        //     results.push(bar(thing));
-        //   }
-        //   // Now that all the asynchronous operations are running, here we wait until they all complete.
-        //   return baz(await Promise.all(results));
-        // }
-
-        // eslint-disable-next-line no-restricted-syntax
-        for (const noteID of updatedDoc.notes) {
-            // eslint-disable-next-line no-await-in-loop
-            await Note.updateOne(
-                { _id: noteID },
-                { $pullAll: { hasAccess: [req.body._id] } }
+        updatedDoc.notes.forEach((noteID) => {
+            noteUpdates.push(
+                Note.updateOne(
+                    { _id: noteID },
+                    { $pullAll: { hasAccess: [req.body._id] } }
+                )
             );
-        }
+        });
+
+        await Promise.all(noteUpdates);
 
         return res.status(200).json(updatedDoc);
     } catch (e) {
