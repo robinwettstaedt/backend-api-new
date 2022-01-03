@@ -18,9 +18,8 @@ export const noteSchema = new mongoose.Schema(
             required: true,
         },
         emoji: {
-            type: {},
+            type: String,
             required: true,
-            default: {},
         },
         hasAccess: {
             type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],

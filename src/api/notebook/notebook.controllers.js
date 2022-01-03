@@ -12,9 +12,6 @@ const userHasAccess = (doc, userID) => {
     return false;
 };
 
-const isValidHex = (colorToBeChecked) =>
-    colorToBeChecked.match(/^((0x){0,1}|#{0,1})([0-9A-F]{8}|[0-9A-F]{6})$/gi);
-
 const getOne = (model) => async (req, res) => {
     try {
         const doc = await model
@@ -57,8 +54,11 @@ const getMany = (model) => async (req, res) => {
                 '_id title emoji deleted deletedAt archived archivedAt visible'
             )
             .populate('hasAccess', '_id email firstName picture')
+            .populate('emoji')
             .lean()
             .exec();
+
+        console.log(docs);
 
         if (!docs) {
             return res.status(404).end();
@@ -74,14 +74,10 @@ const createOne = (model) => async (req, res) => {
     try {
         const notebook = req.body;
 
-        if (!isValidHex(notebook.color)) {
-            return res
-                .status(400)
-                .send({ message: 'given color is not a hex string' });
-        }
-
         notebook.hasAccess = [req.user._id];
         notebook.createdBy = req.user._id;
+
+        console.log(notebook.emoji);
 
         const createdDoc = await model.create(notebook);
 
@@ -109,14 +105,6 @@ const createOne = (model) => async (req, res) => {
 const updateOne = (model) => async (req, res) => {
     try {
         const notebookUpdates = req.body;
-
-        if (notebookUpdates.color) {
-            if (!isValidHex(notebookUpdates.color)) {
-                return res
-                    .status(400)
-                    .send({ message: 'given color is not a hex string' });
-            }
-        }
 
         // check for archived status
         if (notebookUpdates.archived === true) {

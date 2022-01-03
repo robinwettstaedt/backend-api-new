@@ -13,7 +13,7 @@ import { redNotebook } from '../../../__test__/utils/variables/notebookVariables
 import { firstNote } from '../../../__test__/utils/variables/noteVariables';
 
 const notebookInviteTestSuite = () => {
-    describe('Test NoteInvite Controllers', () => {
+    describe('Test NotebookInvite Controllers', () => {
         beforeAll(async () => {
             const authedReq = await authorizedRequest(userWithAccess);
 
@@ -286,12 +286,10 @@ const notebookInviteTestSuite = () => {
                     .put(`/api/v1/notebook/${redNotebook._id}`)
                     .send({
                         title: 'title',
-                        color: '#ff22ff',
                     });
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual('title');
-                expect(response.body.color).toEqual('#ff22ff');
                 expect(response.body._id).toEqual(redNotebook._id);
             });
         });
@@ -338,7 +336,6 @@ const notebookInviteTestSuite = () => {
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual('title');
-                expect(response.body.color).toEqual('#ff22ff');
                 expect(response.body._id).toEqual(redNotebook._id);
             });
         });
@@ -364,7 +361,6 @@ const notebookInviteTestSuite = () => {
                     .put(`/api/v1/notebook/${redNotebook._id}`)
                     .send({
                         title: 'title',
-                        color: '#ff22ff',
                     });
 
                 expect(response.statusCode).toBe(403);

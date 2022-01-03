@@ -6,10 +6,9 @@ export const notebookSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        color: {
+        emoji: {
             type: String,
             required: true,
-            default: '',
         },
         hasAccess: {
             type: [{ type: mongoose.SchemaTypes.ObjectId, ref: 'user' }],

@@ -22,7 +22,7 @@ const notebookTestSuite = () => {
 
                 const response = await authedReq.post('/api/v1/notebook').send({
                     title: redNotebook.title,
-                    color: redNotebook.color,
+                    emoji: redNotebook.emoji,
                 });
 
                 redNotebook._id = response.body._id;
@@ -37,7 +37,7 @@ const notebookTestSuite = () => {
                 );
                 expect(response.body.deleted).toEqual(false);
                 expect(response.body.visible).toEqual(true);
-                expect(response.body.color).toEqual(redNotebook.color);
+                expect(response.body.emoji).toEqual(redNotebook.emoji);
                 expect(response.body.title).toEqual(redNotebook.title);
             });
 
@@ -46,7 +46,7 @@ const notebookTestSuite = () => {
 
                 const response = await authedReq.post('/api/v1/notebook').send({
                     title: greenNotebook.title,
-                    color: greenNotebook.color,
+                    emoji: greenNotebook.emoji,
                 });
 
                 greenNotebook._id = response.body._id;
@@ -61,7 +61,7 @@ const notebookTestSuite = () => {
                 );
                 expect(response.body.deleted).toEqual(false);
                 expect(response.body.visible).toEqual(true);
-                expect(response.body.color).toEqual(greenNotebook.color);
+                expect(response.body.emoji).toEqual(greenNotebook.emoji);
                 expect(response.body.title).toEqual(greenNotebook.title);
             });
 
@@ -70,7 +70,7 @@ const notebookTestSuite = () => {
 
                 const response = await authedReq.post('/api/v1/notebook').send({
                     title: blueNotebook.title,
-                    color: blueNotebook.color,
+                    emoji: blueNotebook.emoji,
                 });
 
                 blueNotebook._id = response.body._id;
@@ -85,27 +85,15 @@ const notebookTestSuite = () => {
                 );
                 expect(response.body.deleted).toEqual(false);
                 expect(response.body.visible).toEqual(true);
-                expect(response.body.color).toEqual(blueNotebook.color);
+                expect(response.body.emoji).toEqual(blueNotebook.emoji);
                 expect(response.body.title).toEqual(blueNotebook.title);
-            });
-
-            test('does not create the notebook (color is not a hex value)', async () => {
-                const authedReq = await authorizedRequest(secondUserWithAccess);
-
-                const response = await authedReq.post('/api/v1/notebook').send({
-                    title: blueNotebook.title,
-                    color: 'blue',
-                });
-
-                expect(response.statusCode).toBe(400);
-                expect(response.body.message).toMatch(/hex string/);
             });
 
             test('does not create the notebook (title missing)', async () => {
                 const authedReq = await authorizedRequest(secondUserWithAccess);
 
                 const response = await authedReq.post('/api/v1/notebook').send({
-                    color: blueNotebook.color,
+                    emoji: blueNotebook.emoji,
                 });
 
                 expect(response.statusCode).toBe(400);
@@ -120,12 +108,12 @@ const notebookTestSuite = () => {
                     .put(`/api/v1/notebook/${greenNotebook._id}`)
                     .send({
                         title: redNotebook.title,
-                        color: redNotebook.color,
+                        emoji: redNotebook.emoji,
                     });
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual(redNotebook.title);
-                expect(response.body.color).toEqual(redNotebook.color);
+                expect(response.body.emoji).toEqual(redNotebook.emoji);
                 expect(response.body._id).toEqual(greenNotebook._id);
             });
 
@@ -166,30 +154,18 @@ const notebookTestSuite = () => {
                     .put(`/api/v1/notebook/${greenNotebook._id}`)
                     .send({
                         title: greenNotebook.title,
-                        color: greenNotebook.color,
+                        emoji: greenNotebook.emoji,
                         archived: false,
                     });
 
                 expect(response.statusCode).toBe(200);
                 expect(response.body.title).toEqual(greenNotebook.title);
-                expect(response.body.color).toEqual(greenNotebook.color);
+                expect(response.body.emoji).toEqual(greenNotebook.emoji);
                 expect(response.body._id).toEqual(greenNotebook._id);
                 expect(response.body.deleted).toBe(false);
                 expect(response.body.deletedAt).toBeNull();
                 expect(response.body.archived).toBe(false);
                 expect(response.body.archivedAt).toBeNull();
-            });
-
-            test('does not update the notebook (color not a hex value)', async () => {
-                const authedReq = await authorizedRequest(userWithAccess);
-
-                const response = await authedReq
-                    .put(`/api/v1/notebook/${greenNotebook._id}`)
-                    .send({
-                        color: 'green',
-                    });
-
-                expect(response.statusCode).toBe(400);
             });
 
             test('hasAccess field does not get updated (access is handled via different routes)', async () => {
