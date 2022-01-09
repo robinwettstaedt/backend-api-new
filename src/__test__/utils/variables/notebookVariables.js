@@ -1,14 +1,14 @@
 export const redNotebook = {
     title: 'redNotebook (userWithAccess)',
-    emoji: { emojiData: 'redEmoji' },
+    emoji: 'notebook',
 };
 
 export const greenNotebook = {
     title: 'greenNotebook (userWithAccess)',
-    emoji: { emojiData: 'greenEmoji' },
+    emoji: 'notebook',
 };
 
 export const blueNotebook = {
     title: 'blueNotebook (secondUserWithAccess)',
-    emoji: { emojiData: 'blueEmoji' },
+    emoji: 'notebook',
 };

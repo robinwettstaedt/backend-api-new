@@ -54,11 +54,8 @@ const getMany = (model) => async (req, res) => {
                 '_id title emoji deleted deletedAt archived archivedAt visible'
             )
             .populate('hasAccess', '_id email firstName picture')
-            .populate('emoji')
             .lean()
             .exec();
-
-        console.log(docs);
 
         if (!docs) {
             return res.status(404).end();
@@ -76,8 +73,6 @@ const createOne = (model) => async (req, res) => {
 
         notebook.hasAccess = [req.user._id];
         notebook.createdBy = req.user._id;
-
-        console.log(notebook.emoji);
 
         const createdDoc = await model.create(notebook);
 
