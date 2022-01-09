@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { validationResult } from 'express-validator';
 import User from '../user/user.model';
 
 export const createAccessToken = (user) =>
@@ -60,6 +61,13 @@ export const signup = async (req, res) => {
     try {
         if (!req.body.email || !req.body.password) {
             return res.status(400).send({ message: 'need email and password' });
+        }
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                message: 'need to provide a valid email and password',
+            });
         }
 
         const user = await User.create(req.body);
