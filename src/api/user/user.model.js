@@ -75,6 +75,17 @@ userSchema.pre('save', function (next) {
     });
 });
 
+userSchema.pre('save', function (next) {
+    if (!this.isModified('username')) {
+        return next();
+    }
+
+    const lowerCaseUsername = this.username.toLowerCase();
+    this.username = lowerCaseUsername;
+
+    next();
+});
+
 userSchema.methods.checkPassword = function (password) {
     const passwordHash = this.password;
     return new Promise((resolve, reject) => {

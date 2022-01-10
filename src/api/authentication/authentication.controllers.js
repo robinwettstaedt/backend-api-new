@@ -63,6 +63,7 @@ export const signup = async (req, res) => {
             return res.status(400).send({ message: 'need email and password' });
         }
 
+        // express-validation stuff
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -132,6 +133,7 @@ export const refreshAccessToken = async (req, res) => {
 
 // invalidates the users refreshToken, so the user will have to log in again on every device
 // e.g. when user forgets password
+// TODO: as its trying to access the user object, it must be a protected route
 export const revokeRefreshToken = async (req, res, user) => {
     try {
         const updatedDoc = await User.findOneAndUpdate(
@@ -147,6 +149,16 @@ export const revokeRefreshToken = async (req, res, user) => {
     } catch (e) {
         return res.status(400).end();
     }
+};
+
+export const checkUsernameAvailability = async (req, res) => {
+    const userExists = await User.exists({ username: req.body.username });
+
+    if (userExists) {
+        return res.status(400).send({ message: 'username taken' });
+    }
+
+    return res.status(200).send({ message: 'valid username' });
 };
 
 // middleware securing all routes
