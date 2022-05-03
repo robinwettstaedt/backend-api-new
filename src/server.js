@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import connectToMongoDB from './utils/createMongoConnection';
 import app from './app';
 

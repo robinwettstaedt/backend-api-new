@@ -75,6 +75,7 @@ userSchema.pre('save', function (next) {
     });
 });
 
+// eslint-disable-next-line
 userSchema.pre('save', function (next) {
     if (!this.isModified('username')) {
         return next();
@@ -86,6 +87,7 @@ userSchema.pre('save', function (next) {
     next();
 });
 
+// eslint-disable-next-line
 userSchema.methods.checkPassword = function (password) {
     const passwordHash = this.password;
     return new Promise((resolve, reject) => {

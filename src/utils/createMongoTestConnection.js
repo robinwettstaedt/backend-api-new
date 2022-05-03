@@ -1,4 +1,6 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-undef  */
+/* eslint-disable no-console */
+
 import mongoose from 'mongoose';
 
 export const connectToTestMongo = async () => {
